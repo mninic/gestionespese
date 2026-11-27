@@ -380,6 +380,9 @@ button{transition:transform .08s,background .15s}button:active{transform:scale(.
 .xadv label{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--mut);min-width:0}
 .xadv select,.xadv input{width:100%;min-width:0}
 .xr2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.xgr{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;margin:0 2px 10px}.xgr>span{font-size:13px;color:var(--mut);white-space:nowrap}.xgr .seg{flex:1 1 250px;margin:0}
+.grp>summary{list-style:none;display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 14px;font-size:13px;font-weight:700;cursor:pointer;background:color-mix(in srgb,var(--ac) 7%,transparent);border-top:1px solid var(--bd)}
+.grp:first-child>summary{border-top:0;border-radius:var(--r,16px) var(--r,16px) 0 0}.grp>summary::-webkit-details-marker{display:none}.grp>summary small{color:var(--mut);font-weight:500;margin-left:4px}
 
 .tgl{background:var(--card);border-radius:14px;box-shadow:var(--shadow);margin:10px 0}
 .tg{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 14px;border-top:1px solid var(--bd);cursor:pointer}
@@ -600,6 +603,7 @@ body::before{content:'';position:fixed;top:0;left:0;right:0;height:env(safe-area
   <div class="xper"><div class="seg sm" id="x-ps" role="group" aria-label="Periodo"><button data-v="m" class="on">Mese</button><button data-v="y">Anno</button><button data-v="a">Tutto</button></div><div class="mpick" id="x-mp"><button id="x-mp-p" aria-label="Periodo precedente">‹</button><label id="x-ml"><span id="x-mt"></span><input type="month" id="x-m" aria-label="Periodo"></label><button id="x-mp-n" aria-label="Periodo successivo">›</button></div></div>
   <select id="x-p" hidden><option value="m">Mese</option><option value="y">Anno</option><option value="a">Tutto</option></select>
   <select id="x-t" hidden><option value="">Tutti i tipi</option><option value="u">Uscite</option><option value="e">Entrate</option><option value="t">Trasferimenti</option></select>
+  <div class="xgr"><span>Raggruppa</span><div class="seg sm" id="x-gr" role="group" aria-label="Raggruppa per"><button data-v="">Nessuno</button><button data-v="d">Giorno</button><button data-v="c">Categ.</button><button data-v="s">Sottocat.</button></div></div>
   <div class="panel xadv" id="x-adv" hidden>
     <label>Conto<select id="x-a"></select></label>
     <label>Categoria<select id="x-c"></select></label>
@@ -680,7 +684,7 @@ body::before{content:'';position:fixed;top:0;left:0;right:0;height:env(safe-area
 </div>
 
 <script>
-const APP_VER='2.14.1';
+const APP_VER='2.15.0';
 const KEY='prospetto-spese-v1';
 const uid=()=>Math.random().toString(36).slice(2,9);
 const pad=n=>String(n).padStart(2,'0');
@@ -1242,12 +1246,20 @@ function rX(){
   $('xcards').innerHTML=`<div class="card"><small>Entrate</small><b class="pos">${eur(en)}</b><span class="s">${LE.length} movimenti</span></div>
    <div class="card"><small>Uscite</small><b class="neg">${eur(us)}</b><span class="s">${LU.length} movimenti</span></div>
    <div class="card hl"><small>Netto</small><b class="${en-us<0?'neg':''}">${eur(r2(en-us))}</b><span class="s">secondo le regole di statistiche</span></div>`;
-  $('xl').innerHTML=L.slice(0,XMAX).map(t=>{
+  const rowF=t=>{
     const c=t.split?null:catById(t.cat),col=c?c.color||'#7a8594':'#7a8594',sg=t.type==='u'?'−':t.type==='e'?'+':'';
     const acc=t.type==='t'?esc(accName(t.acct))+' → '+esc(accName(t.to)):esc(accName(t.acct));
     return `<div class="txr${xm()&&XSEL.has(t.id)?' sel':''}" data-id="${t.id}">${xm()?`<input type="checkbox" class="xck" tabindex="-1"${XSEL.has(t.id)?' checked':''}>`:''}<span class="txi" style="background:color-mix(in srgb,${col} 22%,transparent)">${t.split?'✂':c&&c.icon?esc(c.icon):t.type==='t'?'⇄':t.type==='e'?'＋':'−'}</span>
       <span class="txm"><b>${esc(t.name)||(t.type==='t'?'Trasferimento':'(senza nome)')}</b><span>${fd(t.date)} · ${t.type==='t'?'Trasferimento':esc(catLabel(t))} · ${acc}${t.ref?' · da scadenzario':''}${whoChip(t)}</span></span>
-      <span class="txw"><span class="txa ${t.type==='u'?'neg':t.type==='e'?'pos':''}">${sg}${eur(t.amount)}</span>${flagsH(t)}</span></div>`}).join('')||'<p class="foot" style="padding:18px">Nessun movimento. Segna una voce come pagata oppure tocca ＋ per aggiungerne uno.</p>';
+      <span class="txw"><span class="txa ${t.type==='u'?'neg':t.type==='e'?'pos':''}">${sg}${eur(t.amount)}</span>${flagsH(t)}</span></div>`};
+  const emp='<p class="foot" style="padding:18px">Nessun movimento. Segna una voce come pagata oppure tocca ＋ per aggiungerne uno.</p>';
+  const gk=SO.xg||'',LS=L.slice(0,XMAX);document.querySelectorAll('#x-gr button').forEach(b=>b.classList.toggle('on',b.dataset.v===gk));
+  const fdl=d=>{const x=new Date(d+'T12:00:00').toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long',year:'numeric'});return x.charAt(0).toUpperCase()+x.slice(1)};
+  const grp=t=>{if(gk==='d')return[t.date,fdl(t.date),0];if(t.type==='t')return['~t','⇄ Trasferimenti',2];if(t.split)return['~s','✂ Più categorie',2];const c=t.cat;if(!c)return['','Senza categoria',1];if(gk==='c'){const r=catRootId(c),cc=catById(r);return[r,cc?(cc.icon?cc.icon+' ':'')+cc.name:'Senza categoria',0]}const cc=catById(c);return[c,(cc&&cc.icon?cc.icon+' ':'')+catPath(c),0]};
+  if(!gk||!LS.length)$('xl').innerHTML=LS.map(rowF).join('')||emp;
+  else{const G=new Map();LS.forEach(t=>{const [k,l,o]=grp(t);let g=G.get(k);if(!g){g={l,o,n:0,net:0,h:''};G.set(k,g)}g.n++;if(!t.adj&&effSta(t)){const f=flowK(t);g.net+=f==='e'?t.amount:f==='u'?-t.amount:0}g.h+=rowF(t)});
+    let A=[...G.values()];if(gk!=='d')A.sort((a,b)=>a.o-b.o||Math.abs(b.net)-Math.abs(a.net)||a.l.localeCompare(b.l,'it'));
+    $('xl').innerHTML=A.map(g=>`<details class="grp" open><summary><span>${esc(g.l)} <small>${g.n}</small></span><b class="${g.net<0?'neg':g.net>0?'pos':''}">${g.net>0?'+':g.net<0?'−':''}${eur(Math.abs(r2(g.net)))}</b></summary>${g.h}</details>`).join('')}
   if(xm()){const vis=new Set(L.map(t=>t.id));$('xs-n').textContent=[...XSEL].filter(i=>vis.has(i)).length+' selezionati su '+L.length;const cv2=$('xs-c').value;$('xs-c').innerHTML='<option value="__">Categoria…</option><option value="-">Senza categoria (rimuovi)</option>'+catOpts(null,null).replace(/^<option[^>]*>[^<]*<\/option>/,'');$('xs-c').value=[...$('xs-c').options].some(o=>o.value===cv2)?cv2:'__'}
   $('xnote').textContent=(S.set.pause?'Generazione dai prospetti sospesa (Impostazioni). ':'')+(L.length>XMAX?`Mostrati ${XMAX} movimenti su ${L.length}.`:'');
 }
@@ -1270,6 +1282,7 @@ $('x-ps').onclick=e=>{const b=e.target.closest('button');if(!b)return;$('x-p').v
 const xstep=d=>{const m=$('x-m').value||XF.m,p=$('x-p').value;let k=m;if(p==='y'){k=(+m.slice(0,4)+d)+m.slice(4)}else k=d>0?nextK(m):prevK(m);$('x-m').value=k;xfire('x-m')};
 $('x-mp-p').onclick=()=>xstep(-1);$('x-mp-n').onclick=()=>xstep(1);
 $('x-ft').onclick=()=>{const o=$('x-adv').hidden;$('x-adv').hidden=!o;$('x-ft').setAttribute('aria-expanded',o);$('x-ft').classList.toggle('on',o)};
+$('x-gr').onclick=e=>{const b=e.target.closest('button');if(!b)return;SO.xg=b.dataset.v;try{localStorage.setItem(SORTK,JSON.stringify(SO))}catch(x){}rX()};
 $('x-rs').onclick=()=>{['x-a','x-c','x-g','x-w'].forEach(i=>$(i).value='');['x-min','x-max'].forEach(i=>$(i).value='');XMAX=200;rX()};
 ['x-p','x-t','x-a','x-c','x-g','x-w','x-m'].forEach(i=>$(i).addEventListener('change',xSync));['x-min','x-max'].forEach(i=>$(i).addEventListener('input',xSync));
 function txTy(){const b=document.querySelector('#tx-ty .on');return b?b.dataset.ty:'u'}
