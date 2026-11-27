@@ -344,6 +344,8 @@ button{transition:transform .08s,background .15s}button:active{transform:scale(.
  body.xsel{padding-bottom:230px}
  body.xsel #bnav,body.tx-open #bnav,body.dm-open #bnav,body.nm-open #bnav,body.sheet-open #bnav,body.menu-open #bnav{display:none}
  #burger{display:none}
+ header .hdl{display:none}
+ body:not([data-tab=m]) header{display:none}
  header .hdl h1{display:none}
  header .hdl .sub{font-size:28px;font-weight:800;letter-spacing:-.6px;color:var(--tx);white-space:normal}
  header{-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);background:color-mix(in srgb,var(--bg) 86%,transparent)}
@@ -596,6 +598,7 @@ button{transition:transform .08s,background .15s}button:active{transform:scale(.
   <div class="panel" id="synp">
   <b>Sincronizzazione con GitHub</b>
   <p class="foot" style="text-align:left;margin:4px 0">Usa un repository <b>privato</b> e un token fine-grained limitato a quel solo repository (permesso Contents: Read and write). Il token resta solo in questo browser e non finisce nel backup.</p>
+  <p class="foot" id="sst2" style="text-align:left;margin:6px 0"></p>
   <div class="dr"><input id="sy-r" placeholder="utente/repository" style="flex:1;min-width:160px"><input id="sy-p" placeholder="file" value="prospetto-spese.json" style="flex:1;min-width:140px"><input id="sy-b" placeholder="branch" value="main" style="width:90px"></div>
   <div class="dr"><input id="sy-t" type="password" placeholder="Token (github_pat_...)" autocomplete="off" style="flex:1;min-width:220px"></div>
   <div class="dr"><button id="sy-s" class="pri">Salva e sincronizza</button><button id="sy-n">Sincronizza ora</button><button id="sy-x">Disattiva</button></div>
@@ -641,7 +644,7 @@ button{transition:transform .08s,background .15s}button:active{transform:scale(.
 </div>
 
 <script>
-const APP_VER='2.12.0';
+const APP_VER='2.12.1';
 const KEY='prospetto-spese-v1';
 const uid=()=>Math.random().toString(36).slice(2,9);
 const pad=n=>String(n).padStart(2,'0');
@@ -1144,7 +1147,7 @@ $('newm').onclick=()=>{NM.k='';rNM();openM('nmd')};
 
 /* ---- Modello dati 2.0: categorie, transazioni, saldi ---- */
 const catById=id=>S.cats.find(c=>c.id===id);
-const catKids=id=>S.cats.filter(c=>(c.parent||'')===(id||''));
+const catKids=id=>S.cats.filter(c=>(c.parent||'')===(id||'')).sort((a,b)=>String(a.name).localeCompare(String(b.name),'it',{sensitivity:'base'}));
 const catPath=id=>{const a=[];let c=catById(id),n=0;while(c&&n++<20){a.unshift(c.name);c=c.parent?catById(c.parent):null}return a.join(' › ')};
 function catDesc(id){const o=new Set([id]);let ch=true;while(ch){ch=false;S.cats.forEach(c=>{if(c.parent&&o.has(c.parent)&&!o.has(c.id)){o.add(c.id);ch=true}})}return o}
 function catFlat(kind){const out=[];const walk=(p,d)=>catKids(p).forEach(c=>{if(!d&&kind&&c.kind&&c.kind!==kind)return;out.push({c,d});walk(c.id,d+1)});walk('',0);return out}
@@ -1805,7 +1808,7 @@ const SK='prospetto-spese-sync';
 let C={};try{C=JSON.parse(localStorage.getItem(SK))||{}}catch(e){}
 const svC=()=>{try{localStorage.setItem(SK,JSON.stringify(C))}catch(e){}};
 const b64e=x=>btoa(unescape(encodeURIComponent(x))),b64d=x=>decodeURIComponent(escape(atob(x.replace(/\s/g,''))));
-const stt=m=>{$('sst').textContent=m?' · '+m:''};
+const stt=m=>{const okm=!m||/^☁ (sincronizzato|attivo|sincronizzo)/.test(m);$('sst').textContent=(m&&!okm)?' · '+m:'';const s2=$('sst2');if(s2)s2.textContent=m||'Sincronizzazione non attiva su questo dispositivo.'};
 const pk=()=>{const{cur,...r}=S;return JSON.stringify(r)};
 let busy=false,tmr=null;
 function schedPush(){if(C.repo&&C.tok){clearTimeout(tmr);tmr=setTimeout(syncNow,1500)}}
@@ -1851,7 +1854,7 @@ $('sy-n').onclick=()=>syncNow();
 $('sy-x').onclick=()=>{if(confirm('Disattivare la sincronizzazione su questo dispositivo? I dati locali restano.')){C={};svC();stt('');fillSync()}};
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)syncNow()});
 addEventListener('online',()=>syncNow());
-if(C.repo&&C.tok)stt('☁ attivo');
+if(C.repo&&C.tok)stt('☁ attivo');else stt('');
 setTab('h');
 render();
 if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
