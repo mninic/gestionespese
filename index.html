@@ -187,6 +187,9 @@ body.nm-open .bd,body.dm-open .bd,body.tx-open .bd{opacity:1;pointer-events:auto
 .cr{display:grid;grid-template-columns:44px minmax(0,1fr) 44px auto auto;gap:6px;align-items:center;padding:5px 0;border-top:1px solid var(--bd)}
 .cr>*{min-width:0}.cr input[type=color]{padding:2px;height:40px;width:44px}.cr .ci{text-align:center;padding:7px 2px}
 .kh{font-size:12px;color:var(--mut);margin:12px 0 2px;text-transform:uppercase;letter-spacing:.04em}
+.ac3{grid-template-columns:1fr 170px 170px auto}
+.ab{padding:10px 12px 12px;border-top:1px solid var(--bd)}
+.ab .r{display:flex;justify-content:space-between;gap:8px;font-size:13px;margin-top:4px}.ab .r span:first-child{color:var(--mut)}
 .dang{margin:14px 0 0;width:100%;color:var(--bad);border:1.5px solid var(--bad);font-weight:600;min-height:44px}
 .dver{margin-top:auto;padding:12px 4px 4px;font-size:12px;color:var(--mut);text-align:center}
 @media(max-width:700px){
@@ -211,7 +214,7 @@ body.nm-open .bd,body.dm-open .bd,body.tx-open .bd{opacity:1;pointer-events:auto
 
  /* ---- nuovo inserimento: pulsante + e pannello a scomparsa dal basso ---- */
  #fab{display:flex;position:fixed;right:max(16px,env(safe-area-inset-right));bottom:calc(16px + env(safe-area-inset-bottom));width:56px;height:56px;min-height:0;border-radius:50%;padding:0;align-items:center;justify-content:center;font-size:30px;line-height:1;background:var(--ac);border:0;color:#fff;box-shadow:0 4px 14px rgba(0,0,0,.35);z-index:35}
- body[data-tab=c] #fab,body[data-tab=k] #fab,body.tx-open #fab,body.menu-open #fab,body.sheet-open #fab,body.nm-open #fab,body.dm-open #fab{display:none}
+ body[data-tab=c] #fab,body[data-tab=s] #fab,body[data-tab=k] #fab,body.tx-open #fab,body.menu-open #fab,body.sheet-open #fab,body.nm-open #fab,body.dm-open #fab{display:none}
  .addp{position:fixed;left:0;right:0;bottom:0;margin:0;z-index:45;border-radius:16px 16px 0 0;border-width:1px 0 0;padding:12px 14px calc(16px + env(safe-area-inset-bottom));max-height:88vh;max-height:88dvh;overflow-y:auto;transform:translateY(105%);visibility:hidden;transition:transform .22s,visibility 0s .22s}
  body.sheet-open .addp{transform:none;visibility:visible;transition:transform .22s}
  body.sheet-open .bd{opacity:1;pointer-events:auto}
@@ -273,6 +276,7 @@ body.nm-open .bd,body.dm-open .bd,body.tx-open .bd{opacity:1;pointer-events:auto
  /* ---- conti ---- */
  .addc{grid-template-columns:minmax(0,1fr) auto;gap:8px}
  .addc>input{grid-column:1/-1}
+ .ac3{grid-template-columns:minmax(0,1fr)}.ac3>*{grid-column:1/-1}
  .al{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
  .al>input[data-k=name]{grid-column:1/-1}
  .al>input[data-k=name]{grid-column:1/-1}
@@ -328,7 +332,7 @@ body.nm-open .bd,body.dm-open .bd,body.tx-open .bd{opacity:1;pointer-events:auto
   <div class="mh"><b id="dm-t"></b><button type="button" class="sh-x" data-mclose aria-label="Chiudi">✕</button></div>
   <div class="mb" id="dm-b"></div>
 </div>
-<nav class="drawer" id="tabs"><div class="dt">Menu</div><button data-t="m" class="on">Mensile</button><button data-t="t">Modello mensile</button><button data-t="a">Annuali</button><button data-t="x">Movimenti</button><button data-t="d">Debiti e crediti</button><button data-t="c">Conti</button><button data-t="k">Categorie</button><hr><button id="syncb" title="Sincronizzazione con GitHub">☁ Sync</button><div class="dver" id="ver"></div></nav>
+<nav class="drawer" id="tabs"><div class="dt">Menu</div><button data-t="m" class="on">Mensile</button><button data-t="t">Modello mensile</button><button data-t="a">Annuali</button><button data-t="x">Movimenti</button><button data-t="d">Debiti e crediti</button><button data-t="c">Conti</button><button data-t="k">Categorie</button><hr><button data-t="s">Impostazioni</button><button id="syncb" title="Sincronizzazione con GitHub">☁ Sync</button><div class="dver" id="ver"></div></nav>
 <div class="panel" id="synp" style="display:none">
   <b>Sincronizzazione con GitHub</b>
   <p class="foot" style="text-align:left;margin:4px 0">Usa un repository <b>privato</b> e un token fine-grained limitato a quel solo repository (permesso Contents: Read and write). Il token resta solo in questo browser e non finisce nel backup.</p>
@@ -437,12 +441,22 @@ body.nm-open .bd,body.dm-open .bd,body.tx-open .bd{opacity:1;pointer-events:auto
     <div class="addc" style="margin-top:10px"><input id="k-n" placeholder="Nuova categoria"><select id="k-t"><option value="u">Uscita</option><option value="e">Entrata</option></select><button id="k-b" class="pri">Aggiungi</button></div>
   </div>
 </div>
+<div id="v-s" style="display:none">
+  <div class="panel"><b>Movimenti dai prospetti</b>
+    <p class="foot" style="text-align:left;margin:4px 0 8px">Quando segni una voce di Mensile o Annuali come pagata, l'app crea il movimento reale. Se importerai i movimenti da un'altra app (es. Budget Flow) sospendi la generazione per evitare doppioni.</p>
+    <label class="chk" style="margin:0 0 10px"><input type="checkbox" id="st-p"> Sospendi la generazione di movimenti dai prospetti</label>
+    <div class="dgrid"><label class="w">Quando riprende, genera solo i pagamenti dal (facoltativo)<input type="date" id="st-f"></label></div>
+    <p class="foot" id="st-n" style="text-align:left"></p>
+    <button id="st-d" class="dang">Elimina i movimenti generati dai prospetti</button>
+  </div>
+</div>
 <div id="v-c" style="display:none">
   <div class="cards" id="ccards"></div>
   <div class="panel"><b>I tuoi conti</b>
-    <p class="foot" style="text-align:left;margin:4px 0 6px">Il conto <b>principale</b> è quello da cui paghi e da cui trasferisci agli altri. Gli stessi conti si scelgono nelle spese mensili e annuali e in debiti e crediti.</p>
+    <p class="foot" style="text-align:left;margin:4px 0 8px">Tocca un conto per modificarlo. Il conto <b>principale</b> è quello da cui paghi. Un <b>sottoconto</b> (es. IMU dentro Revolut) alimenta i saldi del suo conto: nelle spese mensili vedi quanto trasferire sul conto e, sotto, il dettaglio per sottoconto.</p>
+    <div class="fl" style="margin-bottom:8px"><small>Ordina conti</small><select id="so-c"><option value="man">Manuale (▲▼ nel conto)</option><option value="nome">Nome A-Z</option><option value="saldo">Saldo maggiore</option><option value="saldoa">Saldo minore</option><option value="tipo">Tipo di conto</option></select></div>
     <div id="cl"></div>
-    <div class="addc" style="margin-top:8px"><input id="ac-n" placeholder="Nuovo conto (es. Carta Visa, Contanti)"><select id="ac-t"></select><button id="ac-b" class="pri">Aggiungi</button></div>
+    <div class="addc ac3" style="margin-top:10px"><input id="ac-n" placeholder="Nuovo conto (es. Carta Visa, IMU)"><select id="ac-t"></select><select id="ac-p" title="Sottoconto di"></select><button id="ac-b" class="pri">Aggiungi</button></div>
   </div>
   <p class="foot" id="cnote"></p>
 </div>
@@ -456,7 +470,7 @@ body.nm-open .bd,body.dm-open .bd,body.tx-open .bd{opacity:1;pointer-events:auto
 </div>
 
 <script>
-const APP_VER='2.0.0';
+const APP_VER='2.2.0';
 const KEY='prospetto-spese-v1';
 const uid=()=>Math.random().toString(36).slice(2,9);
 const pad=n=>String(n).padStart(2,'0');
@@ -487,7 +501,9 @@ function norm(){
   Object.values(S.months).forEach(l=>l.forEach(i=>{if(!ok(i.src))i.src=S.main}));
   S.annual.forEach(a=>{if(!ok(a.src))a.src=S.main});
   S.debts.forEach(x=>{x.pay=x.pay||[];if(x.acct&&!ok(x.acct))x.acct='';x.pay.forEach(p=>{if(p.acct&&!ok(p.acct))p.acct=''})});
-  S.accts.forEach(a=>{a.open=+a.open||0});
+  S.accts.forEach(a=>{a.open=+a.open||0;const p=S.accts.find(x=>x.id===a.parent);a.parent=(p&&p.id!==a.id)?p.id:''});
+  S.accts.forEach(a=>{const p=S.accts.find(x=>x.id===a.parent);if(p&&p.parent)a.parent=''});
+  S.set=(S.set&&typeof S.set==='object')?S.set:{};S.set.pause=!!S.set.pause;S.set.from=S.set.from||'';
   if(!Array.isArray(S.cats)||!S.cats.length)S.cats=DEFCATS.map(c=>({...c}));
   S.tx=Array.isArray(S.tx)?S.tx.filter(t=>t&&t.id&&t.date):[];
   S.tx.forEach(t=>{t.type=['u','e','t'].includes(t.type)?t.type:'u';t.amount=Math.abs(+t.amount||0);if(!ok(t.acct))t.acct=S.main;if(t.type==='t'){if(!ok(t.to)||t.to===t.acct)t.to=(S.accts.find(a=>a.id!==t.acct)||{}).id||''}else t.to='';t.tags=Array.isArray(t.tags)?t.tags:[];t.note=t.note||'';t.name=t.name||'';t.cat=t.cat||''});
@@ -496,8 +512,12 @@ function norm(){
   S.tpl.forEach(t=>{t.kind=t.kind==='r'?'r':'f';if(!ok(t.src))t.src=S.main});
 }
 norm();
-const accName=id=>(S.accts.find(a=>a.id===id)||{}).name||'';
-const accOpts=(sel,blank)=>(blank?`<option value=""${sel?'':' selected'}>${blank}</option>`:'')+S.accts.map(a=>`<option value="${a.id}"${a.id===sel?' selected':''}>${esc(a.name)}</option>`).join('');
+const accName=id=>{const a=S.accts.find(x=>x.id===id);if(!a)return '';const p=a.parent&&S.accts.find(x=>x.id===a.parent);return p?p.name+' › '+a.name:a.name};
+const accSort=l=>{const m=SO.c;if(!m||m==='man')return l;const f={nome:(a,b)=>a.name.localeCompare(b.name,'it'),saldo:(a,b)=>accTot(b.id)-accTot(a.id),saldoa:(a,b)=>accTot(a.id)-accTot(b.id),tipo:(a,b)=>Object.keys(ACT).indexOf(a.type)-Object.keys(ACT).indexOf(b.type)||a.name.localeCompare(b.name,'it')}[m];return f?[...l].sort(f):l};
+const accTree=(sorted)=>{const o=[],f=sorted?accSort:(l=>l);f(S.accts.filter(a=>!a.parent)).forEach(r=>{o.push({a:r,sub:false});f(S.accts.filter(x=>x.parent===r.id)).forEach(c=>o.push({a:c,sub:true}))});return o};
+const accRoot=id=>{const a=S.accts.find(x=>x.id===id);return a&&a.parent?a.parent:id};
+const accIds=id=>[id,...S.accts.filter(x=>x.parent===id).map(x=>x.id)];
+const accOpts=(sel,blank)=>(blank?`<option value=""${sel?'':' selected'}>${blank}</option>`:'')+accTree().map(({a})=>`<option value="${a.id}"${a.id===sel?' selected':''}>${esc(accName(a.id))}</option>`).join('');
 const fillSel=()=>[['a-s',S.main,''],['aa-s',S.main,''],['tp-c',S.main,''],['dd-c','','Nessun conto'],['x-a','','Tutti i conti'],['tx-a',S.main,''],['tx-b','','Scegli il conto']].forEach(([id,def,bl])=>{
   const e=$(id),v=e.value;e.innerHTML=accOpts(null,bl);e.value=(v&&[...e.options].some(o=>o.value===v))?v:def});
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){};schedPush()};
@@ -519,8 +539,9 @@ function render(){
   const all=[...items()].sort((a,b)=>a.date.localeCompare(b.date)||a.name.localeCompare(b.name));
   const sum=f=>r2(all.filter(f).reduce((s,i)=>s+(+i.amount||0),0));
   const tot=sum(()=>1),paid=sum(i=>i.paid),left=sum(i=>!i.paid);
-  const mainN=esc(accName(S.main)),lm=sum(i=>!i.paid&&i.src===S.main),tm=sum(i=>i.src===S.main);
-  const oth=S.accts.filter(a=>a.id!==S.main).map(a=>({a,l:sum(i=>!i.paid&&i.src===a.id),t:sum(i=>i.src===a.id)})).filter(o=>o.t>0||o.l>0);
+  const mr=accRoot(S.main),mainN=esc(accName(mr)),lm=sum(i=>!i.paid&&accRoot(i.src)===mr),tm=sum(i=>accRoot(i.src)===mr);
+  const oth=S.accts.filter(a=>!a.parent&&a.id!==mr).map(a=>({a,l:sum(i=>!i.paid&&accRoot(i.src)===a.id),t:sum(i=>accRoot(i.src)===a.id),
+    d:S.accts.filter(x=>x.parent===a.id).map(x=>({n:x.name,v:sum(i=>!i.paid&&i.src===x.id)})).filter(x=>x.v>0)})).filter(o=>o.t>0||o.l>0);
   const nLeft=all.filter(i=>!i.paid&&i.amount>0).length;
   const late=sum(i=>!i.paid&&i.date<today);
   const next=all.find(i=>!i.paid&&i.amount>0&&i.date>=today);
@@ -530,7 +551,7 @@ function render(){
     <div class="card"><small>Già pagato</small><b style="color:var(--ok)">${eur(paid)}</b><div class="prog"><i style="width:${pct}%"></i></div><span class="s">${pct}% completato</span></div>
     <div class="card hl"><small>Resta da pagare</small><b>${eur(left)}</b><span class="s">${nLeft} scadenze${late>0?` · <span style="color:var(--bad)">${eur(late)} scaduti</span>`:''}</span></div>
     <div class="card hl"><small>Da pagare da: ${mainN}</small><b>${eur(lm)}</b><span class="s">su ${eur(tm)} nel mese</span></div>
-    ${oth.map(o=>`<div class="card hl"><small>Da trasferire a: ${esc(o.a.name)}</small><b>${eur(o.l)}</b><span class="s">su ${eur(o.t)} nel mese</span></div>`).join('')}
+    ${oth.map(o=>`<div class="card hl"><small>Da trasferire a: ${esc(o.a.name)}</small><b>${eur(o.l)}</b><span class="s">su ${eur(o.t)} nel mese</span>${o.d.length?`<span class="s">di cui ${o.d.map(x=>esc(x.n)+' '+eur(x.v)).join(' · ')}</span>`:''}</div>`).join('')}
     <div class="card"><small>Uscita totale da: ${mainN}</small><b>${eur(left)}</b><span class="s">pagamenti diretti + trasferimenti</span></div>
     <div class="card"><small>Prossima scadenza</small><b class="nx" style="font-size:16px">${next?esc(next.name):'—'}</b><span class="s">${next?new Date(next.date).toLocaleDateString('it-IT',{day:'numeric',month:'short'})+' · '+eur(next.amount):'nessuna'}</span></div>`;
   const vis=all.filter(i=>flt==='all'||(flt==='todo'?!i.paid:i.paid));
@@ -548,7 +569,7 @@ function render(){
       <td>${rc}${c}</td>
       <td class="ck"><input type="checkbox" data-k="paid"${i.paid?' checked':''}></td>
       <td class="x"><button data-del title="Elimina">✕</button></td></tr>`}).join('')||'<tr class="emp"><td colspan="7" style="color:var(--mut);text-align:center;padding:18px">Nessuna voce</td></tr>';
-  rA();rD();rT();rC();rX();rK();save();
+  rA();rD();rT();rC();rX();rK();rS();save();
 }
 
 $('rows').addEventListener('change',e=>{
@@ -629,7 +650,7 @@ $('bd').onclick=()=>{closeMenu();closeSheet();closeM()};
 addEventListener('keydown',e=>{if(e.key==='Escape'){closeMenu();closeSheet();closeM()}});
 const tdy=()=>{const t=new Date();return t.getFullYear()+'-'+pad(t.getMonth()+1)+'-'+pad(t.getDate())};
 let ay=new Date().getFullYear();
-function setTab(t){['m','t','a','d','c','x','k'].forEach(k=>{$('v-'+k).style.display=k===t?'':'none'});$('mnav').style.display=t==='m'?'':'none';document.querySelectorAll('#tabs button[data-t]').forEach(b=>{const on=b.dataset.t===t;b.classList.toggle('on',on);if(on)$('cursec').textContent=b.textContent});document.body.dataset.tab=t;closeSheet();closeM();closeMenu()}
+function setTab(t){['m','t','a','d','c','x','k','s'].forEach(k=>{$('v-'+k).style.display=k===t?'':'none'});$('mnav').style.display=t==='m'?'':'none';document.querySelectorAll('#tabs button[data-t]').forEach(b=>{const on=b.dataset.t===t;b.classList.toggle('on',on);if(on)$('cursec').textContent=b.textContent});document.body.dataset.tab=t;closeSheet();closeM();closeMenu()}
 $('tabs').onclick=e=>{if(e.target.dataset.t)setTab(e.target.dataset.t)};
 const fd=d=>new Date(d).toLocaleDateString('it-IT',{day:'numeric',month:'short',year:'numeric'});
 
@@ -681,7 +702,7 @@ $('arows').addEventListener('click',e=>{
 /* ---- Debiti e crediti ---- */
 const paidOf=x=>r2(x.pay.reduce((a,p)=>a+p.a,0)),remOf=x=>r2(x.total-paidOf(x));
 const SORTK='prospetto-spese-sort';
-let SO={g:'res',r:'auto'};try{Object.assign(SO,JSON.parse(localStorage.getItem(SORTK))||{})}catch(e){}
+let SO={g:'res',r:'auto',c:'man'};try{Object.assign(SO,JSON.parse(localStorage.getItem(SORTK))||{})}catch(e){}
 const cmpS=(a,b)=>a<b?-1:a>b?1:0,dueK=x=>x.due||'9999-99-99';
 const rowCmp={
   auto:(a,b)=>cmpS(a.date||'',b.date||''),
@@ -896,12 +917,15 @@ function catDesc(id){const o=new Set([id]);let ch=true;while(ch){ch=false;S.cats
 function catFlat(kind){const out=[];const walk=(p,d)=>catKids(p).forEach(c=>{if(!d&&kind&&c.kind&&c.kind!==kind)return;out.push({c,d});walk(c.id,d+1)});walk('',0);return out}
 const catOpts=(sel,kind,blank)=>`<option value="">${blank||'Senza categoria'}</option>`+catFlat(kind).map(({c,d})=>`<option value="${c.id}"${c.id===sel?' selected':''}>${'  '.repeat(d)}${esc(c.icon||'')} ${esc(c.name)}</option>`).join('');
 const accBal=id=>{const a=S.accts.find(x=>x.id===id);let s=+(a&&a.open)||0;S.tx.forEach(t=>{const m=+t.amount||0;if(t.type==='u'&&t.acct===id)s-=m;else if(t.type==='e'&&t.acct===id)s+=m;else if(t.type==='t'){if(t.acct===id)s-=m;if(t.to===id)s+=m}});return r2(s)};
+const accTot=id=>r2(accIds(id).reduce((s,x)=>s+accBal(x),0));
 function refItem(ref){const p=String(ref).split(':');if(p[0]==='m'){for(const l of Object.values(S.months)){const i=l.find(x=>x.id===p[1]);if(i)return i}return null}return S.annual.find(x=>x.id===p[1])||null}
 /* Le voci segnate "pagate" generano una transazione reale (collegata con ref); si ricalcolano a ogni render */
 function recon(){
+  if(S.set.pause)return;
   const want=new Map();
   Object.values(S.months).forEach(l=>l.forEach(i=>{if(i.paid&&+i.amount>0)want.set('m:'+i.id,{date:i.paidOn||i.date,amount:+i.amount,acct:i.src,name:i.name,cat:i.cat||''})}));
   S.annual.forEach(a=>Object.keys(a.paid||{}).forEach(y=>{if(a.paid[y]&&+a.amount>0)want.set('a:'+a.id+':'+y,{date:(a.paidOn&&a.paidOn[y])||adate(a,+y),amount:+a.amount,acct:a.src,name:a.name,cat:a.cat||''})}));
+  if(S.set.from)want.forEach((w,k)=>{if(w.date<S.set.from)want.delete(k)});
   const have=new Map(S.tx.filter(t=>t.ref).map(t=>[t.ref,t]));
   S.tx=S.tx.filter(t=>!t.ref||want.has(t.ref));
   want.forEach((w,key)=>{let t=have.get(key);if(!t){t={id:uid(),tags:[],note:'',ref:key};S.tx.push(t)}Object.assign(t,{type:'u',to:''},w)});
@@ -914,7 +938,7 @@ function xFilter(){
     if(per==='m'&&t.date.slice(0,7)!==m)return false;
     if(per==='y'&&t.date.slice(0,4)!==m.slice(0,4))return false;
     if(ty&&t.type!==ty)return false;
-    if(ac&&t.acct!==ac&&t.to!==ac)return false;
+    if(ac&&!accIds(ac).includes(t.acct)&&!accIds(ac).includes(t.to))return false;
     if(c==='-'&&t.cat)return false;
     if(cs&&!cs.has(t.cat))return false;
     if(q&&!(t.name+' '+t.note+' '+(t.tags||[]).join(' ')+' '+catPath(t.cat)).toLowerCase().includes(q))return false;
@@ -935,7 +959,7 @@ function rX(){
     return `<div class="txr" data-id="${t.id}"><span class="txi" style="background:color-mix(in srgb,${col} 22%,transparent)">${c&&c.icon?esc(c.icon):t.type==='t'?'⇄':t.type==='e'?'＋':'−'}</span>
       <span class="txm"><b>${esc(t.name)||(t.type==='t'?'Trasferimento':'(senza nome)')}</b><span>${fd(t.date)} · ${t.type==='t'?'Trasferimento':c?esc(catPath(t.cat)):'Senza categoria'} · ${acc}${t.ref?' · da scadenzario':''}</span></span>
       <span class="txa ${t.type==='u'?'neg':t.type==='e'?'pos':''}">${sg}${eur(t.amount)}</span></div>`}).join('')||'<p class="foot" style="padding:18px">Nessun movimento. Segna una voce come pagata oppure tocca ＋ per aggiungerne uno.</p>';
-  $('xnote').textContent=L.length>XMAX?`Mostrati ${XMAX} movimenti su ${L.length}.`:'';
+  $('xnote').textContent=(S.set.pause?'Generazione dai prospetti sospesa (Impostazioni). ':'')+(L.length>XMAX?`Mostrati ${XMAX} movimenti su ${L.length}.`:'');
 }
 ['x-p','x-m','x-a','x-t','x-c'].forEach(i=>$(i).addEventListener('change',()=>{XMAX=200;if(i==='x-m'&&$('x-m').value)XF.m=$('x-m').value;rX()}));
 $('x-q').addEventListener('input',()=>{XMAX=200;rX()});
@@ -1009,50 +1033,90 @@ $('kl').addEventListener('click',e=>{
 });
 $('k-b').onclick=()=>{const n=$('k-n').value.trim();if(!n){$('k-n').focus();return}S.cats.push({id:uid(),name:n,parent:'',icon:'',color:$('k-t').value==='e'?'#1a9d5a':'#7a8594',kind:$('k-t').value});$('k-n').value='';render()};
 
+/* ---- Impostazioni ---- */
+function rS(){
+  $('st-p').checked=S.set.pause;$('st-d').disabled=!S.set.pause;
+  if(document.activeElement!==$('st-f'))$('st-f').value=S.set.from||'';
+  const g=S.tx.filter(t=>t.ref).length;
+  $('st-n').textContent=(S.set.pause?'Generazione sospesa. ':'Generazione attiva. ')+g+(g===1?' movimento generato':' movimenti generati')+' dai prospetti, '+(S.tx.length-g)+' inseriti a mano. '+(S.set.pause?'':'Per eliminare i movimenti generati sospendi prima la generazione.');
+}
+$('st-p').onchange=()=>{S.set.pause=$('st-p').checked;render()};
+$('st-f').addEventListener('change',()=>{S.set.from=$('st-f').value;renderSoft()});
+$('st-d').onclick=()=>{const g=S.tx.filter(t=>t.ref).length;if(!g){alert('Nessun movimento generato dai prospetti.');return}
+  if(confirm('Eliminare '+g+' movimenti generati dai prospetti? Le voci restano segnate come pagate. I movimenti inseriti a mano non cambiano.')){S.tx=S.tx.filter(t=>!t.ref);render()}};
+
 /* ---- Conti ---- */
 const useCount=id=>Object.values(S.months).reduce((n,l)=>n+l.filter(i=>i.src===id).length,0)+S.annual.filter(a=>a.src===id).length+S.tpl.filter(t=>t.src===id).length+S.tx.filter(t=>t.acct===id||t.to===id).length+S.debts.reduce((n,x)=>n+(x.acct===id?1:0)+x.pay.filter(p=>p.acct===id).length,0);
+const copen=new Set();
 function rC(){
-  $('cl').innerHTML=S.accts.map(a=>`<div class="al" data-id="${a.id}"><input data-k="name" value="${esc(a.name)}" placeholder="Nome conto"><select data-k="type">${Object.entries(ACT).map(([k,v])=>`<option value="${k}"${a.type===k?' selected':''}>${v}</option>`).join('')}</select><label class="fl" style="font-size:11px"><small>Saldo iniziale €</small><input type="number" step="0.01" inputmode="decimal" data-k="open" value="${a.open||0}"></label><label class="mn"><input type="radio" name="mainacc" data-main${a.id===S.main?' checked':''}> Principale</label><button data-del title="Elimina">✕</button></div>`).join('');
   const sm=(l,f)=>r2(l.filter(f).reduce((s,i)=>s+(+i.amount||0),0));
   const totBal=r2(S.accts.reduce((s,a)=>s+accBal(a.id),0));
-  $('ccards').innerHTML=`<div class="card hl"><small>Saldo totale</small><b>${eur(totBal)}</b><span class="s">somma di tutti i conti</span></div>`+S.accts.map(a=>{
-    const mi=items().filter(i=>i.src===a.id),ml=sm(mi,i=>!i.paid),mt=sm(mi,()=>1);
-    const an=S.annual.filter(x=>x.src===a.id&&!(x.paid&&x.paid[ay])),al=sm(an,()=>1);
-    const od=S.debts.filter(x=>x.acct===a.id&&isOpen(x)),dd=r2(od.filter(x=>x.dir==='d').reduce((s,x)=>s+remOf(x),0)),dc=r2(od.filter(x=>x.dir==='c').reduce((s,x)=>s+remOf(x),0));
-    return `<div class="card ac${a.id===S.main?' hl':''}"><div class="t">${esc(a.name)}</div><small>${ACT[a.type]||ACT.alt}${a.id===S.main?' · principale':''}</small>
-      <div class="r"><span>Saldo attuale</span><b style="font-size:16px" class="${accBal(a.id)<0?'neg':''}">${eur(accBal(a.id))}</b></div>
-      <div class="r"><span>${monthLabel(S.cur)}</span><b style="font-size:14px">${eur(mt)}</b></div>
-      <div class="r"><span>· da pagare</span><span>${eur(ml)}</span></div>
-      <div class="r"><span>Annuali ${ay} da pagare</span><span>${eur(al)}</span></div>
-      <div class="r"><span>Devo (debiti aperti)</span><span class="${dd>0?'neg':''}">${eur(dd)}</span></div>
-      <div class="r"><span>Mi devono (crediti aperti)</span><span class="${dc>0?'pos':''}">${eur(dc)}</span></div></div>`}).join('');
+  $('ccards').innerHTML=`<div class="card hl"><small>Saldo totale</small><b class="${totBal<0?'neg':''}">${eur(totBal)}</b><span class="s">${S.accts.length} ${S.accts.length===1?'conto':'conti'}, sottoconti compresi</span></div>`;
+  const pv=$('ac-p').value;
+  $('ac-p').innerHTML='<option value="">Conto autonomo</option>'+S.accts.filter(a=>!a.parent).map(a=>`<option value="${a.id}">Sottoconto di ${esc(a.name)}</option>`).join('');
+  $('ac-p').value=S.accts.some(a=>a.id===pv&&!a.parent)?pv:'';
+  $('so-c').value=SO.c||'man';
+  $('cl').innerHTML=accTree(true).map(({a,sub})=>{
+    const kids=S.accts.filter(x=>x.parent===a.id),ids=accIds(a.id).filter(x=>sub?x===a.id:true);
+    const tot=accTot(a.id),own=accBal(a.id);
+    const mi=items().filter(i=>ids.includes(i.src)),ml=sm(mi,i=>!i.paid),mt=sm(mi,()=>1);
+    const an=S.annual.filter(x=>ids.includes(x.src)&&!(x.paid&&x.paid[ay])),al=sm(an,()=>1);
+    const od=S.debts.filter(x=>ids.includes(x.acct)&&isOpen(x)),dd=r2(od.filter(x=>x.dir==='d').reduce((s,x)=>s+remOf(x),0)),dc=r2(od.filter(x=>x.dir==='c').reduce((s,x)=>s+remOf(x),0));
+    const popts='<option value="">Nessuno (conto autonomo)</option>'+S.accts.filter(x=>!x.parent&&x.id!==a.id).map(x=>`<option value="${x.id}"${x.id===a.parent?' selected':''}>${esc(x.name)}</option>`).join('');
+    return `<details class="tpi acd" data-id="${a.id}" style="margin-left:${sub?18:0}px"${copen.has(a.id)?' open':''}>
+      <summary><span class="tps"><b class="ppn">${esc(a.name)}</b><span class="pps">${ACT[a.type]||ACT.alt}${a.id===S.main?' · principale':''}${sub?' · sottoconto':''}${kids.length?' · '+kids.length+(kids.length===1?' sottoconto':' sottoconti'):''}</span></span><b class="tpm ${tot<0?'neg':''}">${eur(tot)}</b></summary>
+      <div class="ab" data-id="${a.id}">
+        ${kids.length?`<div class="r"><span>Solo questo conto</span><b>${eur(own)}</b></div>${kids.map(k=>`<div class="r"><span>› ${esc(k.name)}</span><span>${eur(accBal(k.id))}</span></div>`).join('')}`:''}
+        <div class="r"><span>${monthLabel(S.cur)}${kids.length?' (sottoconti compresi)':''}</span><b>${eur(mt)}</b></div>
+        <div class="r"><span>· da pagare</span><span>${eur(ml)}</span></div>
+        <div class="r"><span>Annuali ${ay} da pagare</span><span>${eur(al)}</span></div>
+        <div class="r"><span>Devo (debiti aperti)</span><span class="${dd>0?'neg':''}">${eur(dd)}</span></div>
+        <div class="r"><span>Mi devono (crediti aperti)</span><span class="${dc>0?'pos':''}">${eur(dc)}</span></div>
+        <div class="dgrid">
+          <label class="w">Nome<input data-k="name" value="${esc(a.name)}"></label>
+          <label>Tipo<select data-k="type">${Object.entries(ACT).map(([k,v])=>`<option value="${k}"${a.type===k?' selected':''}>${v}</option>`).join('')}</select></label>
+          <label>Saldo iniziale €<input type="number" step="0.01" inputmode="decimal" data-k="open" value="${a.open||0}"></label>
+          <label class="w">Sottoconto di<select data-k="parent"${kids.length?' disabled title="Ha dei sottoconti"':''}>${popts}</select></label>
+        </div>
+        ${SO.c==='man'?`<div class="r" style="margin-top:10px"><span>Posizione nell'elenco</span><span><button data-mv="-1" aria-label="Sposta su">▲</button> <button data-mv="1" aria-label="Sposta giù">▼</button></span></div>`:''}
+        <label class="mn" style="margin-top:10px"><input type="radio" name="mainacc" data-main${a.id===S.main?' checked':''}> Conto principale</label>
+        <button class="dang" data-del>Elimina conto</button>
+      </div></details>`}).join('');
   const nn=S.debts.filter(x=>!x.acct&&isOpen(x)).length;
   $('cnote').textContent=(S.accts.every(a=>!a.open)&&S.tx.length?'Imposta il saldo iniziale di ogni conto: saldo attuale = saldo iniziale + movimenti registrati. ':'')+(nn?nn+(nn===1?' debito/credito aperto è':' debiti/crediti aperti sono')+' senza conto: sceglilo nella sezione Debiti e crediti.':'');
 }
+$('cl').addEventListener('toggle',e=>{const d=e.target;if(d.classList&&d.classList.contains('acd')){d.open?copen.add(d.dataset.id):copen.delete(d.dataset.id)}},true);
 $('ac-t').innerHTML=Object.entries(ACT).map(([k,v])=>`<option value="${k}">${v}</option>`).join('');
 $('ac-b').onclick=()=>{
   const n=$('ac-n').value.trim();if(!n){$('ac-n').focus();return}
-  S.accts.push({id:uid(),name:n,type:$('ac-t').value});$('ac-n').value='';render();
+  S.accts.push({id:uid(),name:n,type:$('ac-t').value,open:0,parent:$('ac-p').value||''});$('ac-n').value='';render();
 };
 $('cl').addEventListener('change',e=>{
-  const row=e.target.closest('.al');if(!row)return;
+  const row=e.target.closest('.ab');if(!row)return;
   const a=S.accts.find(x=>x.id===row.dataset.id);if(!a)return;
-  if(e.target.dataset.main!==undefined)S.main=a.id;
+  if(e.target.dataset.k==='parent'){a.parent=e.target.value;if(S.accts.some(x=>x.parent===a.id))a.parent=''}
+  else if(e.target.dataset.main!==undefined)S.main=a.id;
   else if(e.target.dataset.k==='name')a.name=e.target.value.trim()||a.name;
   else if(e.target.dataset.k==='type')a.type=e.target.value;
   else if(e.target.dataset.k==='open')a.open=parseFloat(e.target.value)||0;
   renderSoft();
 });
+$('so-c').onchange=e=>{SO.c=e.target.value;try{localStorage.setItem(SORTK,JSON.stringify(SO))}catch(x){}rC()};
 $('cl').addEventListener('click',e=>{
+  const mv=e.target.closest('[data-mv]');
+  if(mv){const id=mv.closest('.ab').dataset.id,a=S.accts.find(x=>x.id===id),d=+mv.dataset.mv;
+    const sib=S.accts.filter(x=>(x.parent||'')===(a.parent||'')),i=sib.indexOf(a),o=sib[i+d];if(!o)return;
+    const ia=S.accts.indexOf(a),io=S.accts.indexOf(o);S.accts[ia]=o;S.accts[io]=a;copen.add(id);render();return}
   if(!e.target.closest('[data-del]'))return;
-  const id=e.target.closest('.al').dataset.id,a=S.accts.find(x=>x.id===id);if(!a)return;
+  const id=e.target.closest('.ab').dataset.id,a=S.accts.find(x=>x.id===id);if(!a)return;
   if(id===S.main){alert('Questo è il conto principale: scegline prima un altro come principale.');return}
   const n=useCount(id);
-  if(!confirm(n?'“'+a.name+'” è usato in '+n+(n===1?' voce':' voci')+'.\nEliminandolo, spese mensili e annuali passano a “'+accName(S.main)+'”, mentre debiti, crediti e pagamenti restano senza conto.\n\nEliminare?':'Eliminare il conto “'+a.name+'”?'))return;
+  if(!confirm(n?'“'+a.name+'” è usato in '+n+(n===1?' voce':' voci')+'.\nEliminandolo, spese mensili e annuali passano a “'+accName(S.main)+'”, i sottoconti diventano conti autonomi, mentre debiti, crediti e pagamenti restano senza conto.\n\nEliminare?':'Eliminare il conto “'+a.name+'”?'))return;
   Object.values(S.months).forEach(l=>l.forEach(i=>{if(i.src===id)i.src=S.main}));
   S.annual.forEach(x=>{if(x.src===id)x.src=S.main});
   S.tpl.forEach(x=>{if(x.src===id)x.src=S.main});
   S.debts.forEach(x=>{if(x.acct===id)x.acct='';x.pay.forEach(p=>{if(p.acct===id)p.acct=''})});
+  S.accts.forEach(x=>{if(x.parent===id)x.parent=''});S.tx.forEach(t=>{if(t.acct===id)t.acct=S.main;if(t.to===id)t.to=''});S.tx=S.tx.filter(t=>t.type!=='t'||(t.to&&t.to!==t.acct));
   S.accts=S.accts.filter(x=>x.id!==id);render();
 });
 
