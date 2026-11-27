@@ -5,11 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Prospetto spese</title>
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#2f6df6">
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#f1f2f7">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0d1014">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Spese">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="icon" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
 <style>
@@ -373,6 +374,17 @@ button{transition:transform .08s,background .15s}button:active{transform:scale(.
 .xadv label{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--mut);min-width:0}
 .xadv select,.xadv input{width:100%;min-width:0}
 .xr2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+
+.tgl{background:var(--card);border-radius:14px;box-shadow:var(--shadow);margin:10px 0}
+.tg{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 14px;border-top:1px solid var(--bd);cursor:pointer}
+.tg:first-child{border-top:0}
+.tg span{display:flex;flex-direction:column;min-width:0}.tg small{color:var(--mut);font-size:12px}
+input.sw{-webkit-appearance:none;appearance:none;flex:0 0 50px;width:50px;height:30px;padding:0;border-radius:15px;border:0;background:color-mix(in srgb,var(--mut) 40%,transparent);position:relative;transition:background .15s;cursor:pointer}
+input.sw::after{content:'';position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.3);transition:transform .15s}
+input.sw:checked{background:var(--ok)}input.sw:checked::after{transform:translateX(20px)}
+
+body::before{content:'';position:fixed;top:0;left:0;right:0;height:env(safe-area-inset-top);background:var(--bg);z-index:60;pointer-events:none}
+@media (prefers-color-scheme:light){body::before{background:#1b1f24}}
 </style>
 </head>
 <body>
@@ -411,9 +423,11 @@ button{transition:transform .08s,background .15s}button:active{transform:scale(.
       <div class="w" id="tx-spw" style="display:none;grid-column:1/-1"><small style="color:var(--mut)">Divisione per categoria</small><div id="tx-spl" style="margin-top:4px"></div><div class="dr2" style="grid-template-columns:auto minmax(0,1fr)"><button type="button" id="tx-spa">＋ Riga</button><span class="foot" id="tx-spr" style="text-align:left;align-self:center"></span></div></div>
       <label class="w">Tag (separati da virgola)<input id="tx-g" placeholder="es. vacanza, regalo"></label>
       <label class="w">Note<input id="tx-o"></label>
-      <label class="chk w" style="margin:0"><input type="checkbox" id="tx-pe"> Sospeso (non ancora addebitato: non cambia il saldo)</label>
-      <label class="chk w" style="margin:0"><input type="checkbox" id="tx-bu" checked> Considera nel budget</label>
-      <label class="chk w" style="margin:0"><input type="checkbox" id="tx-st" checked> Considera nelle statistiche</label>
+    </div>
+    <div class="tgl">
+      <label class="tg"><span><b>Sospeso</b><small>Non ancora addebitato: non cambia il saldo</small></span><input type="checkbox" class="sw" id="tx-pe"></label>
+      <label class="tg"><span><b>Considera nel budget</b><small>Conta nel limite della categoria</small></span><input type="checkbox" class="sw" id="tx-bu" checked></label>
+      <label class="tg"><span><b>Considera nelle statistiche</b><small>Conta in Riepilogo e Report</small></span><input type="checkbox" class="sw" id="tx-st" checked></label>
     </div>
     <label class="chk" id="tx-ap"><input type="checkbox" id="tx-all" checked> Usa questa categoria per tutte le voci con lo stesso nome</label>
     <p class="foot" id="tx-lk" style="text-align:left"></p>
@@ -644,7 +658,7 @@ button{transition:transform .08s,background .15s}button:active{transform:scale(.
 </div>
 
 <script>
-const APP_VER='2.12.1';
+const APP_VER='2.12.2';
 const KEY='prospetto-spese-v1';
 const uid=()=>Math.random().toString(36).slice(2,9);
 const pad=n=>String(n).padStart(2,'0');
