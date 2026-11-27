@@ -232,7 +232,7 @@ body.xsel .xbar{display:grid}body.xsel{padding-bottom:230px}body.xsel #fab{displ
 
  /* ---- nuovo inserimento: pulsante + e pannello a scomparsa dal basso ---- */
  #fab{display:flex;position:fixed;right:max(16px,env(safe-area-inset-right));bottom:calc(16px + env(safe-area-inset-bottom));width:56px;height:56px;min-height:0;border-radius:50%;padding:0;align-items:center;justify-content:center;font-size:30px;line-height:1;background:var(--ac);border:0;color:#fff;box-shadow:0 4px 14px rgba(0,0,0,.35);z-index:35}
- body[data-tab=c] #fab,body[data-tab=b] #fab,body[data-tab=r] #fab,body[data-tab=i] #fab,body[data-tab=s] #fab,body[data-tab=k] #fab,body.tx-open #fab,body.menu-open #fab,body.sheet-open #fab,body.nm-open #fab,body.dm-open #fab{display:none}
+ body[data-tab=c] #fab,body[data-tab=b] #fab,body[data-tab=r] #fab,body[data-tab=p] #fab,body[data-tab=i] #fab,body[data-tab=s] #fab,body[data-tab=k] #fab,body.tx-open #fab,body.menu-open #fab,body.sheet-open #fab,body.nm-open #fab,body.dm-open #fab{display:none}
  .addp{position:fixed;left:0;right:0;bottom:0;margin:0;z-index:45;border-radius:16px 16px 0 0;border-width:1px 0 0;padding:12px 14px calc(16px + env(safe-area-inset-bottom));max-height:88vh;max-height:88dvh;overflow-y:auto;transform:translateY(105%);visibility:hidden;transition:transform .22s,visibility 0s .22s}
  body.sheet-open .addp{transform:none;visibility:visible;transition:transform .22s}
  body.sheet-open .bd{opacity:1;pointer-events:auto}
@@ -358,7 +358,7 @@ button[data-t=b][data-al]::after{content:attr(data-al);margin-left:8px;font-size
   <div class="mh"><b id="dm-t"></b><button type="button" class="sh-x" data-mclose aria-label="Chiudi">✕</button></div>
   <div class="mb" id="dm-b"></div>
 </div>
-<nav class="drawer" id="tabs"><div class="dt">Menu</div><button data-t="r">Riepilogo</button><button data-t="m" class="on">Mensile</button><button data-t="t">Modello mensile</button><button data-t="a">Annuali</button><button data-t="x">Movimenti</button><button data-t="i">Entrate</button><button data-t="b">Budget</button><button data-t="d">Debiti e crediti</button><button data-t="c">Conti</button><button data-t="k">Categorie</button><hr><button data-t="s">Impostazioni</button><div class="dver" id="ver"></div></nav>
+<nav class="drawer" id="tabs"><div class="dt">Menu</div><button data-t="r">Riepilogo</button><button data-t="p">Report</button><button data-t="m" class="on">Mensile</button><button data-t="t">Modello mensile</button><button data-t="a">Annuali</button><button data-t="x">Movimenti</button><button data-t="i">Entrate</button><button data-t="b">Budget</button><button data-t="d">Debiti e crediti</button><button data-t="c">Conti</button><button data-t="k">Categorie</button><hr><button data-t="s">Impostazioni</button><div class="dver" id="ver"></div></nav>
 <div id="v-m">
 
 <div class="cards" id="cards"></div>
@@ -455,6 +455,15 @@ button[data-t=b][data-al]::after{content:attr(data-al);margin-left:8px;font-size
   <div class="panel"><b>Prossime scadenze</b><div id="r-due" style="margin-top:6px"></div></div>
   <div class="panel"><b>Saldo dei conti</b><div id="r-acc" style="margin-top:6px"></div></div>
   <p class="foot" style="text-align:left">Statistiche su tutti i conti: contano uscite ed entrate (non i trasferimenti, le rettifiche e i movimenti esclusi dalle statistiche).</p>
+</div>
+<div id="v-p" style="display:none">
+  <div class="panel" style="display:flex;gap:8px;align-items:center;justify-content:space-between"><button id="p-p" aria-label="Anno precedente">‹</button><b id="p-y" style="text-align:center;flex:1"></b><button id="p-n" aria-label="Anno successivo">›</button></div>
+  <div class="cards" id="p-cards"></div>
+  <div class="panel"><b>Previsione del saldo</b><p class="foot" style="text-align:left;margin:4px 0 8px">Parte dal saldo di oggi e aggiunge scadenze non pagate, voci del modello dei mesi non ancora creati, entrate previste e movimenti sospesi.</p><div id="p-cf"></div></div>
+  <div class="panel"><b>Spese fisse e variabili</b><div id="p-fx" style="margin-top:8px"></div></div>
+  <div class="panel"><b>Per categoria</b><div id="p-cat" style="margin-top:6px"></div><button id="p-csv" style="margin-top:8px">⬇ Esporta il report in CSV</button></div>
+  <div class="panel"><b>Dove va il denaro</b><div id="p-top" style="margin-top:6px"></div></div>
+  <div class="panel"><b>Spese anomale</b><p class="foot" style="text-align:left;margin:4px 0 6px">Spese molto sopra la media della loro categoria (almeno 50 €).</p><div id="p-an"></div></div>
 </div>
 <div id="v-b" style="display:none">
   <div class="panel" style="display:flex;gap:8px;align-items:center;justify-content:space-between"><button id="b-p" aria-label="Mese precedente">‹</button><b id="b-m" style="text-align:center;flex:1"></b><button id="b-n" aria-label="Mese successivo">›</button></div>
@@ -559,7 +568,7 @@ button[data-t=b][data-al]::after{content:attr(data-al);margin-left:8px;font-size
 </div>
 
 <script>
-const APP_VER='2.9.0';
+const APP_VER='2.10.0';
 const KEY='prospetto-spese-v1';
 const uid=()=>Math.random().toString(36).slice(2,9);
 const pad=n=>String(n).padStart(2,'0');
@@ -692,7 +701,7 @@ function render(){
       <td>${rc}${c}</td>
       <td class="ck"><input type="checkbox" data-k="paid"${i.paid?' checked':''}></td>
       <td class="x"><button data-del title="Elimina">✕</button></td></tr>`}).join('')||'<tr class="emp"><td colspan="7" style="color:var(--mut);text-align:center;padding:18px">Nessuna voce</td></tr>';
-  rA();rD();rT();rC();rX();rK();rS();rI();rB();rR();save();
+  rA();rD();rT();rC();rX();rK();rS();rI();rB();rR();rP();save();
 }
 
 $('rows').addEventListener('change',e=>{
@@ -774,7 +783,7 @@ $('bd').onclick=()=>{closeMenu();closeSheet();closeM()};
 addEventListener('keydown',e=>{if(e.key==='Escape'){closeMenu();closeSheet();closeM()}});
 const tdy=()=>{const t=new Date();return t.getFullYear()+'-'+pad(t.getMonth()+1)+'-'+pad(t.getDate())};
 let ay=new Date().getFullYear();
-function setTab(t){['m','t','a','d','c','x','k','s','i','b','r'].forEach(k=>{$('v-'+k).style.display=k===t?'':'none'});$('mnav').style.display=t==='m'?'':'none';document.querySelectorAll('#tabs button[data-t]').forEach(b=>{const on=b.dataset.t===t;b.classList.toggle('on',on);if(on)$('cursec').textContent=b.textContent});if(t!=='x')document.body.classList.remove('xsel');document.body.dataset.tab=t;if(t==='s'&&typeof fillSync==='function')fillSync();closeSheet();closeM();closeMenu()}
+function setTab(t){['m','t','a','d','c','x','k','s','i','b','r','p'].forEach(k=>{$('v-'+k).style.display=k===t?'':'none'});$('mnav').style.display=t==='m'?'':'none';document.querySelectorAll('#tabs button[data-t]').forEach(b=>{const on=b.dataset.t===t;b.classList.toggle('on',on);if(on)$('cursec').textContent=b.textContent});if(t!=='x')document.body.classList.remove('xsel');document.body.dataset.tab=t;if(t==='s'&&typeof fillSync==='function')fillSync();closeSheet();closeM();closeMenu()}
 $('tabs').onclick=e=>{if(e.target.dataset.t)setTab(e.target.dataset.t)};
 const fd=d=>new Date(d).toLocaleDateString('it-IT',{day:'numeric',month:'short',year:'numeric'});
 
@@ -1503,6 +1512,68 @@ function rR(){
   $('r-acc').innerHTML=roots.map(a=>`<div class="inr"><div class="inh"><span>${esc(a.name)}</span><b>${eur(accTot(a.id))}</b></div></div>`).join('')+`<div class="inr"><div class="inh"><b>Totale</b><b>${eur(tot)}</b></div></div>`;
 }
 $('r-p').onclick=()=>{RM=prevK(RM);rR()};$('r-n').onclick=()=>{RM=nextK(RM);rR()};
+
+/* ---- Report ---- */
+let RY=+tdy().slice(0,4);
+function yearStats(y,cut){
+  let e=0,u=0;const leaf=new Map(),nm=new Map(),fx={f:0,v:0};
+  const fixN=new Set([...S.tpl.map(t=>t.name),...S.annual.map(a=>a.name)].map(x=>String(x).trim().toLowerCase()));
+  S.tx.forEach(t=>{if(t.adj||t.nos||t.date.slice(0,4)!==String(y))return;if(cut&&t.date.slice(5)>cut)return;
+    if(t.type==='e'){e+=+t.amount||0;return}if(t.type!=='u')return;
+    const a=+t.amount||0;u+=a;
+    const fixed=(t.ref&&(t.ref[0]==='a'||t.ref[0]==='m'))||fixN.has(String(t.name||'').trim().toLowerCase());fx[fixed?'f':'v']+=a;
+    const key=String(t.name||'').trim().toLowerCase()||'(senza nome)';const o=nm.get(key)||{n:t.name||'(senza nome)',s:0,c:0};o.s+=a;o.c++;nm.set(key,o);
+    (t.split?t.split.filter(x=>+x.amount>0):[{cat:t.cat,amount:a}]).forEach(x=>leaf.set(x.cat||'',(leaf.get(x.cat||'')||0)+(+x.amount)))});
+  return {e:r2(e),u:r2(u),leaf,nm,fx};
+}
+function cashflow(){
+  const t0=tdy(),D=86400000,add=(d,n)=>new Date(new Date(d+'T00:00:00Z').getTime()+n*D).toISOString().slice(0,10),end=add(t0,90);
+  const roots=S.accts.filter(a=>!a.parent&&!a.arch);let start=r2(roots.reduce((a,x)=>a+accTot(x.id),0));
+  S.tx.forEach(t=>{if(t.pend){if(t.type==='u')start-=+t.amount||0;else if(t.type==='e')start+=+t.amount||0}});
+  const ev=[],push=(d,a,n)=>{if(d<t0)d=t0;if(d<=end&&a)ev.push({d,a,n})};
+  const keys=Object.keys(S.months).sort(),mx=keys[keys.length-1]||t0.slice(0,7);
+  Object.values(S.months).forEach(l=>l.forEach(i=>{if(!i.paid&&+i.amount>0&&i.date>=add(t0,-45))push(i.date,-i.amount,i.name)}));
+  const y0=+t0.slice(0,4);S.annual.forEach(a=>[y0,y0+1].forEach(y=>{if((a.paid||{})[y]||!(+a.amount>0))return;const d=adate(a,y);if(d>=add(t0,-45))push(d,-a.amount,a.name)}));
+  if(S.tpl.length){let k=nextK(mx);while(k+'-01'<=end){nmRows(k).forEach(r=>push(r.date||dayDate(k,r.t.day),-r.amount,r.t.name));k=nextK(k)}}
+  let k=t0.slice(0,7);while(k+'-01'<=end){S.inc.forEach(n=>{if(!incIn(n,k)||n.rec[k])return;push(dayDate(k,n.day),incExp(n,k),n.name)});k=nextK(k)}
+  const day={};ev.forEach(x=>day[x.d]=(day[x.d]||0)+x.a);
+  const pts=[];let bal=start,min={v:start,d:t0};for(let i=0;i<=90;i++){const d=add(t0,i);bal=r2(bal+(day[d]||0));pts.push(bal);if(bal<min.v)min={v:bal,d}}
+  return {start,pts,min,at:{30:pts[30],60:pts[60],90:pts[90]},n:ev.length};
+}
+function rP(){
+  const y=RY,now=new Date(),cur=y===now.getFullYear(),cut=cur?tdy().slice(5):null;
+  const Y=yearStats(y),P=yearStats(y-1,cut),Yc=cur?yearStats(y,cut):Y;
+  $('p-y').textContent=String(y)+(cur?' (fino a oggi)':'');
+  const dl=(a,b)=>b>0?Math.round((a-b)/b*100):null,ds=v=>v===null?'':`${v>0?'▲':v<0?'▼':'='} ${Math.abs(v)}% sull'anno prima`;
+  const sv=r2(Y.e-Y.u);
+  $('p-cards').innerHTML=`<div class="card"><small>Entrate</small><b class="pos">${eur(Y.e)}</b><span class="s">${ds(dl(Yc.e,P.e))}</span></div><div class="card"><small>Uscite</small><b class="neg">${eur(Y.u)}</b><span class="s">${ds(dl(Yc.u,P.u))}</span></div><div class="card hl"><small>Risparmio</small><b class="${sv<0?'neg':''}">${eur(sv)}</b><span class="s">${Y.e>0?'tasso '+Math.round(sv/Y.e*100)+'%':''}</span></div>`;
+  // cash flow
+  const C=cashflow(),W=360,H=110,mn=Math.min(0,...C.pts),mxv=Math.max(1,...C.pts),sy=v=>H-(v-mn)/(mxv-mn||1)*H,pl=C.pts.map((v,i)=>(i*W/90).toFixed(1)+','+sy(v).toFixed(1)).join(' ');
+  $('p-cf').innerHTML=`<svg viewBox="0 0 ${W} ${H+4}" width="100%" role="img" aria-label="Previsione del saldo a 90 giorni" style="display:block"><line x1="0" x2="${W}" y1="${sy(0)}" y2="${sy(0)}" stroke="var(--bd)" stroke-dasharray="3 3"/><polyline points="${pl}" fill="none" stroke="var(--ac)" stroke-width="2"/></svg>
+   <div class="cards" style="margin:8px 0 0"><div class="card"><small>Oggi</small><b>${eur(C.start)}</b></div><div class="card"><small>Tra 30 giorni</small><b class="${C.at[30]<0?'neg':''}">${eur(C.at[30])}</b></div><div class="card"><small>Tra 60 giorni</small><b class="${C.at[60]<0?'neg':''}">${eur(C.at[60])}</b></div><div class="card"><small>Tra 90 giorni</small><b class="${C.at[90]<0?'neg':''}">${eur(C.at[90])}</b></div></div>
+   <p class="foot" style="text-align:left;margin:6px 0 0">${C.min.v<0?'<b class="neg">Il saldo va sotto zero il '+fd(C.min.d)+' (minimo '+eur(C.min.v)+').</b>':'Punto più basso: '+eur(C.min.v)+' il '+fd(C.min.d)+'.'}</p>`;
+  // fisse/variabili
+  const ft=Y.fx.f+Y.fx.v,pf=ft>0?Math.round(Y.fx.f/ft*100):0;
+  $('p-fx').innerHTML=ft>0?`<div class="prog" style="height:14px;margin:0"><i style="width:${pf}%;background:var(--ac)"></i></div><div class="r" style="display:flex;justify-content:space-between;font-size:13px;margin-top:6px"><span><span style="color:var(--ac)">■</span> Fisse ${eur(r2(Y.fx.f))} · ${pf}%</span><span>Variabili ${eur(r2(Y.fx.v))} · ${100-pf}%</span></div><p class="foot" style="text-align:left;margin:6px 0 0">Fisse: pagamenti di voci del Modello o delle Annuali (anche per nome uguale). Il resto è variabile.</p>`:'<p class="foot" style="text-align:left">Nessuna uscita in questo anno.</p>';
+  // per categoria
+  const by=new Map();Y.leaf.forEach((v,id)=>{const r=id?catRootId(id):'';const o=by.get(r)||{t:0,k:[]};o.t+=v;o.k.push([id,v]);by.set(r,o)});
+  const arr=[...by.entries()].sort((a,b)=>b[1].t-a[1].t);RP=[];
+  $('p-cat').innerHTML=arr.length?arr.map(([r,o])=>{const c=catById(r),nm=c?(c.icon?c.icon+' ':'')+c.name:'Senza categoria';
+    o.k.sort((a,b)=>b[1]-a[1]);RP.push([c?c.name:'Senza categoria','',r2(o.t)]);o.k.forEach(([id,v])=>{if(id&&id!==r)RP.push([c?c.name:'',catPath(id).split(' › ').slice(1).join(' › '),r2(v)])});
+    const subs=o.k.filter(([id])=>id&&id!==r);
+    return `<details class="tpi" style="border:0"><summary style="display:flex;justify-content:space-between;gap:8px;padding:8px 0;font-size:14px"><span>${esc(nm)}</span><b>${eur(r2(o.t))} <span style="color:var(--mut);font-weight:400">${Y.u>0?Math.round(o.t/Y.u*100)+'%':''}</span></b></summary>${subs.length?subs.map(([id,v])=>`<div class="r" style="display:flex;justify-content:space-between;font-size:13px;padding:3px 0 3px 14px;color:var(--mut)"><span>${esc(catPath(id).split(' › ').slice(1).join(' › '))}</span><span>${eur(r2(v))}</span></div>`).join(''):''}<div class="r" style="display:flex;justify-content:space-between;font-size:12px;padding:3px 0 6px 14px;color:var(--mut)"><span>Media al mese</span><span>${eur(r2(o.t/(cur?now.getMonth()+1:12)))}</span></div></details>`}).join(''):'<p class="foot" style="text-align:left">Nessuna uscita in questo anno.</p>';
+  // top
+  const tn=[...Y.nm.values()].sort((a,b)=>b.s-a.s).slice(0,5),tc=[...Y.leaf.entries()].sort((a,b)=>b[1]-a[1]).slice(0,5);
+  $('p-top').innerHTML=`<small style="color:var(--mut)">Categorie</small>${tc.map(([id,v])=>`<div class="r" style="display:flex;justify-content:space-between;font-size:13px;padding:3px 0"><span>${esc(id?catPath(id):'Senza categoria')}</span><b>${eur(r2(v))}</b></div>`).join('')||'—'}<small style="color:var(--mut);display:block;margin-top:8px">Voci (per descrizione)</small>${tn.map(x=>`<div class="r" style="display:flex;justify-content:space-between;font-size:13px;padding:3px 0"><span>${esc(x.n)} <span style="color:var(--mut)">×${x.c}</span></span><b>${eur(r2(x.s))}</b></div>`).join('')||'—'}`;
+  // anomalie
+  const st=new Map();S.tx.forEach(t=>{if(t.type!=='u'||t.adj||t.nos||t.split)return;const o=st.get(t.cat||'')||{n:0,s:0,q:0};const a=+t.amount||0;o.n++;o.s+=a;o.q+=a*a;st.set(t.cat||'',o)});
+  const an=S.tx.filter(t=>t.type==='u'&&!t.adj&&!t.nos&&!t.split&&t.date.slice(0,4)===String(y)&&+t.amount>=50).map(t=>{const o=st.get(t.cat||'');if(!o||o.n<6)return null;const m=o.s/o.n,sd=Math.sqrt(Math.max(0,o.q/o.n-m*m));return +t.amount>m+2*sd&&+t.amount>m*2?{t,m,x:t.amount-m}:null}).filter(Boolean).sort((a,b)=>b.x-a.x).slice(0,5);
+  $('p-an').innerHTML=an.map(({t,m})=>`<div class="inr"><div class="inh"><span class="txm"><b>${esc(t.name)||'(senza nome)'}</b><span>${fd(t.date)} · ${esc(catLabel(t))} · media categoria ${eur(r2(m))}</span></span><b class="neg">${eur(t.amount)}</b></div></div>`).join('')||'<p class="foot" style="text-align:left">Nessuna spesa anomala.</p>';
+}
+let RP=[];
+$('p-p').onclick=()=>{RY--;rP()};$('p-n').onclick=()=>{RY++;rP()};
+$('p-csv').onclick=()=>{const q=v=>'"'+String(v).replace(/"/g,'""')+'"',L=['Categoria;Sottocategoria;Totale '+RY,...RP.map(r=>[q(r[0]),q(r[1]),String(r[2]).replace('.',',')].join(';'))];
+  const b=new Blob(['﻿'+L.join('\r\n')],{type:'text/csv'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='report-'+RY+'.csv';document.body.appendChild(a);a.click();a.remove()};
 $('st-p').onchange=()=>{S.set.pause=$('st-p').checked;render()};
 $('st-f').addEventListener('change',()=>{S.set.from=$('st-f').value;renderSoft()});
 $('st-d').onclick=()=>{const g=S.tx.filter(t=>t.ref).length;if(!g){alert('Nessun movimento generato dai prospetti.');return}
