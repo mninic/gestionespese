@@ -185,6 +185,10 @@ body.nm-open .bd,body.dm-open .bd,body.tx-open .bd{opacity:1;pointer-events:auto
 .txm b,.txm span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .txm span{font-size:12px;color:var(--mut)}
 .txa{font-weight:700;white-space:nowrap}
+.txw{display:flex;flex-direction:column;align-items:flex-end}.fgs{display:flex;gap:3px;margin-top:4px}
+.fg{font:700 9px/1 system-ui,sans-serif;font-style:normal;width:17px;height:17px;border-radius:50%;display:grid;place-items:center;border:1px solid var(--bd);color:var(--mut);background:transparent}
+.fg.on{background:var(--ac);border-color:var(--ac);color:#fff}.fg.off{opacity:.5;text-decoration:line-through}.fg.p{background:var(--warn);border-color:var(--warn);color:#fff;font-size:8px}
+.flg{display:flex;gap:9px;flex-wrap:wrap;align-items:center;font-size:12px;color:var(--mut);margin:0 2px 8px}.flg span{display:flex;gap:5px;align-items:center}
 .cr{display:grid;grid-template-columns:44px minmax(0,1fr) 44px auto auto;gap:6px;align-items:center;padding:5px 0;border-top:1px solid var(--bd)}
 .cr>*{min-width:0}.cr input[type=color]{padding:2px;height:40px;width:44px}.cr .ci{text-align:center;padding:7px 2px}
 .kh{font-size:12px;color:var(--mut);margin:12px 0 2px;text-transform:uppercase;letter-spacing:.04em}
@@ -604,6 +608,7 @@ body::before{content:'';position:fixed;top:0;left:0;right:0;height:env(safe-area
     <div class="xr2"><label>Importo da<input type="number" id="x-min" step="0.01" inputmode="decimal" placeholder="0 €"></label><label>Importo fino a<input type="number" id="x-max" step="0.01" inputmode="decimal" placeholder="∞"></label></div>
     <button id="x-rs" type="button">Azzera i filtri</button>
   </div>
+  <div class="flg"><span><i class="fg p">II</i>Sospeso</span><span><i class="fg on">B</i>Nel budget</span><span><i class="fg on">S</i>Nelle statistiche</span><span><i class="fg off">B</i>Escluso</span></div>
   <div class="panel" id="xl" style="padding:0"></div>
   <p class="foot" id="xnote"></p>
 </div>
@@ -675,7 +680,7 @@ body::before{content:'';position:fixed;top:0;left:0;right:0;height:env(safe-area
 </div>
 
 <script>
-const APP_VER='2.14.0';
+const APP_VER='2.14.1';
 const KEY='prospetto-spese-v1';
 const uid=()=>Math.random().toString(36).slice(2,9);
 const pad=n=>String(n).padStart(2,'0');
@@ -1241,8 +1246,8 @@ function rX(){
     const c=t.split?null:catById(t.cat),col=c?c.color||'#7a8594':'#7a8594',sg=t.type==='u'?'−':t.type==='e'?'+':'';
     const acc=t.type==='t'?esc(accName(t.acct))+' → '+esc(accName(t.to)):esc(accName(t.acct));
     return `<div class="txr${xm()&&XSEL.has(t.id)?' sel':''}" data-id="${t.id}">${xm()?`<input type="checkbox" class="xck" tabindex="-1"${XSEL.has(t.id)?' checked':''}>`:''}<span class="txi" style="background:color-mix(in srgb,${col} 22%,transparent)">${t.split?'✂':c&&c.icon?esc(c.icon):t.type==='t'?'⇄':t.type==='e'?'＋':'−'}</span>
-      <span class="txm"><b>${esc(t.name)||(t.type==='t'?'Trasferimento':'(senza nome)')}</b><span>${fd(t.date)} · ${t.type==='t'?'Trasferimento':esc(catLabel(t))} · ${acc}${t.ref?' · da scadenzario':''}${whoChip(t)}${t.pend?' · sospeso':''}${(t.bud===false||t.nob)?' · fuori budget':t.bud===true?' · in budget':''}${(t.sta===false||t.nos)?' · fuori statistiche':t.sta===true?' · in statistiche':''}</span></span>
-      <span class="txa ${t.type==='u'?'neg':t.type==='e'?'pos':''}">${sg}${eur(t.amount)}</span></div>`}).join('')||'<p class="foot" style="padding:18px">Nessun movimento. Segna una voce come pagata oppure tocca ＋ per aggiungerne uno.</p>';
+      <span class="txm"><b>${esc(t.name)||(t.type==='t'?'Trasferimento':'(senza nome)')}</b><span>${fd(t.date)} · ${t.type==='t'?'Trasferimento':esc(catLabel(t))} · ${acc}${t.ref?' · da scadenzario':''}${whoChip(t)}</span></span>
+      <span class="txw"><span class="txa ${t.type==='u'?'neg':t.type==='e'?'pos':''}">${sg}${eur(t.amount)}</span>${flagsH(t)}</span></div>`}).join('')||'<p class="foot" style="padding:18px">Nessun movimento. Segna una voce come pagata oppure tocca ＋ per aggiungerne uno.</p>';
   if(xm()){const vis=new Set(L.map(t=>t.id));$('xs-n').textContent=[...XSEL].filter(i=>vis.has(i)).length+' selezionati su '+L.length;const cv2=$('xs-c').value;$('xs-c').innerHTML='<option value="__">Categoria…</option><option value="-">Senza categoria (rimuovi)</option>'+catOpts(null,null).replace(/^<option[^>]*>[^<]*<\/option>/,'');$('xs-c').value=[...$('xs-c').options].some(o=>o.value===cv2)?cv2:'__'}
   $('xnote').textContent=(S.set.pause?'Generazione dai prospetti sospesa (Impostazioni). ':'')+(L.length>XMAX?`Mostrati ${XMAX} movimenti su ${L.length}.`:'');
 }
@@ -1295,6 +1300,7 @@ function whoEv(e){const w=e.target.closest('.who');if(!w)return;const k=w.datase
   else if(b.dataset.we!==undefined){const a=whoAmt(k),n=l.length,q=Math.floor(a/n*100)/100;l.forEach(x=>x.q=q);l[n-1].q=r2(a-q*(n-1));renderSplit()}}
 ['input','click'].forEach(ev=>{$('tx-who').addEventListener(ev,whoEv);$('tx-spl').addEventListener(ev,whoEv)});
 function cleanWho(l,tot){const m=new Map();(l||[]).forEach(w=>{const p=String(w.p||'').trim();if(!p)return;m.set(p,r2((m.get(p)||0)+(+w.q||0)))});let a=[...m.entries()].map(([p,q])=>({p,q}));if(a.length&&a.every(x=>!(x.q>0))){const n=a.length,q=Math.floor(tot/n*100)/100;a.forEach(x=>x.q=q);a[n-1].q=r2(tot-q*(n-1))}a=a.filter(x=>x.q>0);return a.length?a:undefined}
+const flagsH=t=>{const b=effBud(t),st=effSta(t);return `<span class="fgs">${t.pend?'<i class="fg p" title="Sospeso">II</i>':''}<i class="fg ${b?'on':'off'}" title="${b?'Considerato nel budget':'Fuori dal budget'}">B</i><i class="fg ${st?'on':'off'}" title="${st?'Considerato nelle statistiche':'Fuori dalle statistiche'}">S</i></span>`};
 const whoChip=t=>{const n=[...whoList(t).keys()];return n.length?' · per '+n.map(esc).join(', '):''};
 const splAmt=()=>{const t=TX!=='new'&&S.tx.find(x=>x.id===TX);return t&&t.ref?t.amount:Math.abs(parseFloat($('tx-m').value)||0)};
 const splRest=()=>r2(splAmt()-SPL.reduce((q,x)=>q+(+x.amount||0),0));
@@ -1741,8 +1747,8 @@ function txRowH(t){
   const c=t.split?null:catById(t.cat),col=c?c.color||'#7a8594':'#7a8594',sg=t.type==='u'?'−':t.type==='e'?'+':'';
   const acc=t.type==='t'?esc(accName(t.acct))+' → '+esc(accName(t.to)):esc(accName(t.acct));
   return `<div class="txr" data-id="${t.id}"><span class="txi" style="background:color-mix(in srgb,${col} 22%,transparent)">${t.split?'✂':c&&c.icon?esc(c.icon):t.type==='t'?'⇄':t.type==='e'?'＋':'−'}</span>
-    <span class="txm"><b>${esc(t.name)||(t.type==='t'?'Trasferimento':'(senza nome)')}</b><span>${t.type==='t'?'Trasferimento':esc(catLabel(t))} · ${acc}${t.pend?' · sospeso':''}${whoChip(t)}</span></span>
-    <b class="${t.type==='e'?'pos':t.type==='u'?'neg':''}" style="white-space:nowrap">${sg}${eur(t.amount)}</b></div>`;
+    <span class="txm"><b>${esc(t.name)||(t.type==='t'?'Trasferimento':'(senza nome)')}</b><span>${t.type==='t'?'Trasferimento':esc(catLabel(t))} · ${acc}${whoChip(t)}</span></span>
+    <span class="txw"><b class="${t.type==='e'?'pos':t.type==='u'?'neg':''}" style="white-space:nowrap">${sg}${eur(t.amount)}</b>${flagsH(t)}</span></div>`;
 }
 function rH(){
   const t0=tdy(),isT=HD===t0;
