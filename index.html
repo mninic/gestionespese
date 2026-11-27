@@ -188,6 +188,7 @@ body.nm-open .bd,body.dm-open .bd,body.tx-open .bd{opacity:1;pointer-events:auto
 .cr>*{min-width:0}.cr input[type=color]{padding:2px;height:40px;width:44px}.cr .ci{text-align:center;padding:7px 2px}
 .kh{font-size:12px;color:var(--mut);margin:12px 0 2px;text-transform:uppercase;letter-spacing:.04em}
 .ac3{grid-template-columns:1fr 170px 170px auto}
+.dr2{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;margin-top:6px}
 .ab{padding:10px 12px 12px;border-top:1px solid var(--bd)}
 .ab .r{display:flex;justify-content:space-between;gap:8px;font-size:13px;margin-top:4px}.ab .r span:first-child{color:var(--mut)}
 .dang{margin:14px 0 0;width:100%;color:var(--bad);border:1.5px solid var(--bad);font-weight:600;min-height:44px}
@@ -332,14 +333,7 @@ body.nm-open .bd,body.dm-open .bd,body.tx-open .bd{opacity:1;pointer-events:auto
   <div class="mh"><b id="dm-t"></b><button type="button" class="sh-x" data-mclose aria-label="Chiudi">✕</button></div>
   <div class="mb" id="dm-b"></div>
 </div>
-<nav class="drawer" id="tabs"><div class="dt">Menu</div><button data-t="m" class="on">Mensile</button><button data-t="t">Modello mensile</button><button data-t="a">Annuali</button><button data-t="x">Movimenti</button><button data-t="d">Debiti e crediti</button><button data-t="c">Conti</button><button data-t="k">Categorie</button><hr><button data-t="s">Impostazioni</button><button id="syncb" title="Sincronizzazione con GitHub">☁ Sync</button><div class="dver" id="ver"></div></nav>
-<div class="panel" id="synp" style="display:none">
-  <b>Sincronizzazione con GitHub</b>
-  <p class="foot" style="text-align:left;margin:4px 0">Usa un repository <b>privato</b> e un token fine-grained limitato a quel solo repository (permesso Contents: Read and write). Il token resta solo in questo browser e non finisce nel backup.</p>
-  <div class="dr"><input id="sy-r" placeholder="utente/repository" style="flex:1;min-width:160px"><input id="sy-p" placeholder="file" value="prospetto-spese.json" style="flex:1;min-width:140px"><input id="sy-b" placeholder="branch" value="main" style="width:90px"></div>
-  <div class="dr"><input id="sy-t" type="password" placeholder="Token (github_pat_...)" autocomplete="off" style="flex:1;min-width:220px"></div>
-  <div class="dr"><button id="sy-s" class="pri">Salva e sincronizza</button><button id="sy-n">Sincronizza ora</button><button id="sy-x">Disattiva</button></div>
-</div>
+<nav class="drawer" id="tabs"><div class="dt">Menu</div><button data-t="m" class="on">Mensile</button><button data-t="t">Modello mensile</button><button data-t="a">Annuali</button><button data-t="x">Movimenti</button><button data-t="d">Debiti e crediti</button><button data-t="c">Conti</button><button data-t="k">Categorie</button><hr><button data-t="s">Impostazioni</button><div class="dver" id="ver"></div></nav>
 <div id="v-m">
 
 <div class="cards" id="cards"></div>
@@ -442,6 +436,21 @@ body.nm-open .bd,body.dm-open .bd,body.tx-open .bd{opacity:1;pointer-events:auto
   </div>
 </div>
 <div id="v-s" style="display:none">
+  <div class="panel"><b>Backup</b>
+    <p class="foot" style="text-align:left;margin:4px 0 8px">I dati restano salvati in questo browser. Esporta un backup ogni tanto, oppure usa la sincronizzazione qui sotto.</p>
+    <div class="bar" style="justify-content:flex-start">
+  <button id="exp">⬇ Esporta backup</button>
+  <button id="imp">⬆ Importa backup</button>
+  <input type="file" id="file" accept=".json" hidden>
+</div>
+</div>
+  <div class="panel" id="synp">
+  <b>Sincronizzazione con GitHub</b>
+  <p class="foot" style="text-align:left;margin:4px 0">Usa un repository <b>privato</b> e un token fine-grained limitato a quel solo repository (permesso Contents: Read and write). Il token resta solo in questo browser e non finisce nel backup.</p>
+  <div class="dr"><input id="sy-r" placeholder="utente/repository" style="flex:1;min-width:160px"><input id="sy-p" placeholder="file" value="prospetto-spese.json" style="flex:1;min-width:140px"><input id="sy-b" placeholder="branch" value="main" style="width:90px"></div>
+  <div class="dr"><input id="sy-t" type="password" placeholder="Token (github_pat_...)" autocomplete="off" style="flex:1;min-width:220px"></div>
+  <div class="dr"><button id="sy-s" class="pri">Salva e sincronizza</button><button id="sy-n">Sincronizza ora</button><button id="sy-x">Disattiva</button></div>
+</div>
   <div class="panel"><b>Movimenti dai prospetti</b>
     <p class="foot" style="text-align:left;margin:4px 0 8px">Quando segni una voce di Mensile o Annuali come pagata, l'app crea il movimento reale. Se importerai i movimenti da un'altra app (es. Budget Flow) sospendi la generazione per evitare doppioni.</p>
     <label class="chk" style="margin:0 0 10px"><input type="checkbox" id="st-p"> Sospendi la generazione di movimenti dai prospetti</label>
@@ -454,6 +463,7 @@ body.nm-open .bd,body.dm-open .bd,body.tx-open .bd{opacity:1;pointer-events:auto
   <div class="cards" id="ccards"></div>
   <div class="panel"><b>I tuoi conti</b>
     <p class="foot" style="text-align:left;margin:4px 0 8px">Tocca un conto per modificarlo. Il conto <b>principale</b> è quello da cui paghi. Un <b>sottoconto</b> (es. IMU dentro Revolut) alimenta i saldi del suo conto: nelle spese mensili vedi quanto trasferire sul conto e, sotto, il dettaglio per sottoconto.</p>
+    <label class="chk" style="margin:0 0 8px"><input type="checkbox" id="so-ca"> Mostra conti archiviati</label>
     <div class="fl" style="margin-bottom:8px"><small>Ordina conti</small><select id="so-c"><option value="man">Manuale (▲▼ nel conto)</option><option value="nome">Nome A-Z</option><option value="saldo">Saldo maggiore</option><option value="saldoa">Saldo minore</option><option value="tipo">Tipo di conto</option></select></div>
     <div id="cl"></div>
     <div class="addc ac3" style="margin-top:10px"><input id="ac-n" placeholder="Nuovo conto (es. Carta Visa, IMU)"><select id="ac-t"></select><select id="ac-p" title="Sottoconto di"></select><button id="ac-b" class="pri">Aggiungi</button></div>
@@ -461,16 +471,10 @@ body.nm-open .bd,body.dm-open .bd,body.tx-open .bd{opacity:1;pointer-events:auto
   <p class="foot" id="cnote"></p>
 </div>
 
-<div class="bar" style="justify-content:center;margin-bottom:10px">
-  <button id="exp">⬇ Esporta backup</button>
-  <button id="imp">⬆ Importa backup</button>
-  <input type="file" id="file" accept=".json" hidden>
-</div>
-<p class="foot">I dati restano salvati in questo browser. Esporta un backup ogni tanto.</p>
 </div>
 
 <script>
-const APP_VER='2.2.0';
+const APP_VER='2.3.0';
 const KEY='prospetto-spese-v1';
 const uid=()=>Math.random().toString(36).slice(2,9);
 const pad=n=>String(n).padStart(2,'0');
@@ -506,7 +510,7 @@ function norm(){
   S.set=(S.set&&typeof S.set==='object')?S.set:{};S.set.pause=!!S.set.pause;S.set.from=S.set.from||'';
   if(!Array.isArray(S.cats)||!S.cats.length)S.cats=DEFCATS.map(c=>({...c}));
   S.tx=Array.isArray(S.tx)?S.tx.filter(t=>t&&t.id&&t.date):[];
-  S.tx.forEach(t=>{t.type=['u','e','t'].includes(t.type)?t.type:'u';t.amount=Math.abs(+t.amount||0);if(!ok(t.acct))t.acct=S.main;if(t.type==='t'){if(!ok(t.to)||t.to===t.acct)t.to=(S.accts.find(a=>a.id!==t.acct)||{}).id||''}else t.to='';t.tags=Array.isArray(t.tags)?t.tags:[];t.note=t.note||'';t.name=t.name||'';t.cat=t.cat||''});
+  S.tx.forEach(t=>{t.adj=!!t.adj;t.type=['u','e','t'].includes(t.type)?t.type:'u';t.amount=Math.abs(+t.amount||0);if(!ok(t.acct))t.acct=S.main;if(t.type==='t'){if(!ok(t.to)||t.to===t.acct)t.to=(S.accts.find(a=>a.id!==t.acct)||{}).id||''}else t.to='';t.tags=Array.isArray(t.tags)?t.tags:[];t.note=t.note||'';t.name=t.name||'';t.cat=t.cat||''});
   S.schema=2;
   S.tpl=Array.isArray(S.tpl)?S.tpl:[];
   S.tpl.forEach(t=>{t.kind=t.kind==='r'?'r':'f';if(!ok(t.src))t.src=S.main});
@@ -517,7 +521,7 @@ const accSort=l=>{const m=SO.c;if(!m||m==='man')return l;const f={nome:(a,b)=>a.
 const accTree=(sorted)=>{const o=[],f=sorted?accSort:(l=>l);f(S.accts.filter(a=>!a.parent)).forEach(r=>{o.push({a:r,sub:false});f(S.accts.filter(x=>x.parent===r.id)).forEach(c=>o.push({a:c,sub:true}))});return o};
 const accRoot=id=>{const a=S.accts.find(x=>x.id===id);return a&&a.parent?a.parent:id};
 const accIds=id=>[id,...S.accts.filter(x=>x.parent===id).map(x=>x.id)];
-const accOpts=(sel,blank)=>(blank?`<option value=""${sel?'':' selected'}>${blank}</option>`:'')+accTree().map(({a})=>`<option value="${a.id}"${a.id===sel?' selected':''}>${esc(accName(a.id))}</option>`).join('');
+const accOpts=(sel,blank)=>(blank?`<option value=""${sel?'':' selected'}>${blank}</option>`:'')+accTree().filter(({a})=>!a.arch||a.id===sel).map(({a})=>`<option value="${a.id}"${a.id===sel?' selected':''}>${esc(accName(a.id))}</option>`).join('');
 const fillSel=()=>[['a-s',S.main,''],['aa-s',S.main,''],['tp-c',S.main,''],['dd-c','','Nessun conto'],['x-a','','Tutti i conti'],['tx-a',S.main,''],['tx-b','','Scegli il conto']].forEach(([id,def,bl])=>{
   const e=$(id),v=e.value;e.innerHTML=accOpts(null,bl);e.value=(v&&[...e.options].some(o=>o.value===v))?v:def});
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){};schedPush()};
@@ -650,7 +654,7 @@ $('bd').onclick=()=>{closeMenu();closeSheet();closeM()};
 addEventListener('keydown',e=>{if(e.key==='Escape'){closeMenu();closeSheet();closeM()}});
 const tdy=()=>{const t=new Date();return t.getFullYear()+'-'+pad(t.getMonth()+1)+'-'+pad(t.getDate())};
 let ay=new Date().getFullYear();
-function setTab(t){['m','t','a','d','c','x','k','s'].forEach(k=>{$('v-'+k).style.display=k===t?'':'none'});$('mnav').style.display=t==='m'?'':'none';document.querySelectorAll('#tabs button[data-t]').forEach(b=>{const on=b.dataset.t===t;b.classList.toggle('on',on);if(on)$('cursec').textContent=b.textContent});document.body.dataset.tab=t;closeSheet();closeM();closeMenu()}
+function setTab(t){['m','t','a','d','c','x','k','s'].forEach(k=>{$('v-'+k).style.display=k===t?'':'none'});$('mnav').style.display=t==='m'?'':'none';document.querySelectorAll('#tabs button[data-t]').forEach(b=>{const on=b.dataset.t===t;b.classList.toggle('on',on);if(on)$('cursec').textContent=b.textContent});document.body.dataset.tab=t;if(t==='s'&&typeof fillSync==='function')fillSync();closeSheet();closeM();closeMenu()}
 $('tabs').onclick=e=>{if(e.target.dataset.t)setTab(e.target.dataset.t)};
 const fd=d=>new Date(d).toLocaleDateString('it-IT',{day:'numeric',month:'short',year:'numeric'});
 
@@ -702,7 +706,7 @@ $('arows').addEventListener('click',e=>{
 /* ---- Debiti e crediti ---- */
 const paidOf=x=>r2(x.pay.reduce((a,p)=>a+p.a,0)),remOf=x=>r2(x.total-paidOf(x));
 const SORTK='prospetto-spese-sort';
-let SO={g:'res',r:'auto',c:'man'};try{Object.assign(SO,JSON.parse(localStorage.getItem(SORTK))||{})}catch(e){}
+let SO={g:'res',r:'auto',c:'man',ca:false};try{Object.assign(SO,JSON.parse(localStorage.getItem(SORTK))||{})}catch(e){}
 const cmpS=(a,b)=>a<b?-1:a>b?1:0,dueK=x=>x.due||'9999-99-99';
 const rowCmp={
   auto:(a,b)=>cmpS(a.date||'',b.date||''),
@@ -949,7 +953,7 @@ function rX(){
   if(!$('x-m').value)$('x-m').value=XF.m;
   const cv=$('x-c').value;$('x-c').innerHTML=catOpts(null,null,'Tutte le categorie').replace('</option>','</option><option value="-">Senza categoria</option>');$('x-c').value=[...$('x-c').options].some(o=>o.value===cv)?cv:'';
   $('x-m').style.display=$('x-p').value==='a'?'none':'';
-  const L=xFilter(),en=r2(L.filter(t=>t.type==='e').reduce((s,t)=>s+t.amount,0)),us=r2(L.filter(t=>t.type==='u').reduce((s,t)=>s+t.amount,0));
+  const L=xFilter(),en=r2(L.filter(t=>t.type==='e'&&!t.adj).reduce((s,t)=>s+t.amount,0)),us=r2(L.filter(t=>t.type==='u'&&!t.adj).reduce((s,t)=>s+t.amount,0));
   $('xcards').innerHTML=`<div class="card"><small>Entrate</small><b class="pos">${eur(en)}</b><span class="s">${L.filter(t=>t.type==='e').length} movimenti</span></div>
    <div class="card"><small>Uscite</small><b class="neg">${eur(us)}</b><span class="s">${L.filter(t=>t.type==='u').length} movimenti</span></div>
    <div class="card hl"><small>Netto</small><b class="${en-us<0?'neg':''}">${eur(r2(en-us))}</b><span class="s">entrate − uscite (senza trasferimenti)</span></div>`;
@@ -1051,20 +1055,22 @@ const copen=new Set();
 function rC(){
   const sm=(l,f)=>r2(l.filter(f).reduce((s,i)=>s+(+i.amount||0),0));
   const totBal=r2(S.accts.reduce((s,a)=>s+accBal(a.id),0));
-  $('ccards').innerHTML=`<div class="card hl"><small>Saldo totale</small><b class="${totBal<0?'neg':''}">${eur(totBal)}</b><span class="s">${S.accts.length} ${S.accts.length===1?'conto':'conti'}, sottoconti compresi</span></div>`;
+  const devo=r2(S.debts.filter(x=>x.dir==='d'&&isOpen(x)).reduce((q,x)=>q+remOf(x),0)),nw=r2(totBal-devo);
+  $('ccards').innerHTML=`<div class="card hl"><small>Saldo totale</small><b class="${totBal<0?'neg':''}">${eur(totBal)}</b><span class="s">${S.accts.length} ${S.accts.length===1?'conto':'conti'}, sottoconti compresi</span></div><div class="card"><small>Patrimonio netto</small><b class="${nw<0?'neg':''}">${eur(nw)}</b><span class="s">conti − debiti aperti (${eur(devo)})</span></div>`;
   const pv=$('ac-p').value;
   $('ac-p').innerHTML='<option value="">Conto autonomo</option>'+S.accts.filter(a=>!a.parent).map(a=>`<option value="${a.id}">Sottoconto di ${esc(a.name)}</option>`).join('');
   $('ac-p').value=S.accts.some(a=>a.id===pv&&!a.parent)?pv:'';
-  $('so-c').value=SO.c||'man';
-  $('cl').innerHTML=accTree(true).map(({a,sub})=>{
+  $('so-c').value=SO.c||'man';$('so-ca').checked=!!SO.ca;
+  const isArch=a=>a.arch||(a.parent&&(S.accts.find(x=>x.id===a.parent)||{}).arch);
+  $('cl').innerHTML=accTree(true).filter(({a})=>SO.ca||!isArch(a)).map(({a,sub})=>{
     const kids=S.accts.filter(x=>x.parent===a.id),ids=accIds(a.id).filter(x=>sub?x===a.id:true);
     const tot=accTot(a.id),own=accBal(a.id);
     const mi=items().filter(i=>ids.includes(i.src)),ml=sm(mi,i=>!i.paid),mt=sm(mi,()=>1);
     const an=S.annual.filter(x=>ids.includes(x.src)&&!(x.paid&&x.paid[ay])),al=sm(an,()=>1);
     const od=S.debts.filter(x=>ids.includes(x.acct)&&isOpen(x)),dd=r2(od.filter(x=>x.dir==='d').reduce((s,x)=>s+remOf(x),0)),dc=r2(od.filter(x=>x.dir==='c').reduce((s,x)=>s+remOf(x),0));
     const popts='<option value="">Nessuno (conto autonomo)</option>'+S.accts.filter(x=>!x.parent&&x.id!==a.id).map(x=>`<option value="${x.id}"${x.id===a.parent?' selected':''}>${esc(x.name)}</option>`).join('');
-    return `<details class="tpi acd" data-id="${a.id}" style="margin-left:${sub?18:0}px"${copen.has(a.id)?' open':''}>
-      <summary><span class="tps"><b class="ppn">${esc(a.name)}</b><span class="pps">${ACT[a.type]||ACT.alt}${a.id===S.main?' · principale':''}${sub?' · sottoconto':''}${kids.length?' · '+kids.length+(kids.length===1?' sottoconto':' sottoconti'):''}</span></span><b class="tpm ${tot<0?'neg':''}">${eur(tot)}</b></summary>
+    return `<details class="tpi acd" data-id="${a.id}" style="margin-left:${sub?18:0}px;${a.color?'border-left:4px solid '+a.color:''}"${copen.has(a.id)?' open':''}>
+      <summary><span class="tps"><b class="ppn">${a.icon?esc(a.icon)+' ':''}${esc(a.name)}</b><span class="pps">${ACT[a.type]||ACT.alt}${a.id===S.main?' · principale':''}${isArch(a)?' · archiviato':''}${sub?' · sottoconto':''}${kids.length?' · '+kids.length+(kids.length===1?' sottoconto':' sottoconti'):''}</span></span><b class="tpm ${tot<0?'neg':''}">${eur(tot)}</b></summary>
       <div class="ab" data-id="${a.id}">
         ${kids.length?`<div class="r"><span>Solo questo conto</span><b>${eur(own)}</b></div>${kids.map(k=>`<div class="r"><span>› ${esc(k.name)}</span><span>${eur(accBal(k.id))}</span></div>`).join('')}`:''}
         <div class="r"><span>${monthLabel(S.cur)}${kids.length?' (sottoconti compresi)':''}</span><b>${eur(mt)}</b></div>
@@ -1076,10 +1082,15 @@ function rC(){
           <label class="w">Nome<input data-k="name" value="${esc(a.name)}"></label>
           <label>Tipo<select data-k="type">${Object.entries(ACT).map(([k,v])=>`<option value="${k}"${a.type===k?' selected':''}>${v}</option>`).join('')}</select></label>
           <label>Saldo iniziale €<input type="number" step="0.01" inputmode="decimal" data-k="open" value="${a.open||0}"></label>
+          <label>Icona<input data-k="icon" value="${esc(a.icon||'')}" maxlength="2" placeholder="es. 🏦"></label>
+          <label>Colore<input type="color" data-k="color" value="${a.color||'#7a8594'}" style="padding:2px;min-height:40px"></label>
           <label class="w">Sottoconto di<select data-k="parent"${kids.length?' disabled title="Ha dei sottoconti"':''}>${popts}</select></label>
         </div>
+        <div class="r" style="margin-top:10px"><span>Riconcilia${kids.length?' (solo questo conto)':''}</span><span>registrato ${eur(own)}</span></div>
+        <div class="dr2"><input type="number" step="0.01" inputmode="decimal" data-real placeholder="Saldo reale €" aria-label="Saldo reale"><button data-rec>Riconcilia</button></div>
         ${SO.c==='man'?`<div class="r" style="margin-top:10px"><span>Posizione nell'elenco</span><span><button data-mv="-1" aria-label="Sposta su">▲</button> <button data-mv="1" aria-label="Sposta giù">▼</button></span></div>`:''}
         <label class="mn" style="margin-top:10px"><input type="radio" name="mainacc" data-main${a.id===S.main?' checked':''}> Conto principale</label>
+        <label class="mn" style="margin-top:8px"><input type="checkbox" data-arch${a.arch?' checked':''}> Archivia (nascondi dai menu e dall'elenco)</label>
         <button class="dang" data-del>Elimina conto</button>
       </div></details>`}).join('');
   const nn=S.debts.filter(x=>!x.acct&&isOpen(x)).length;
@@ -1092,17 +1103,29 @@ $('ac-b').onclick=()=>{
   S.accts.push({id:uid(),name:n,type:$('ac-t').value,open:0,parent:$('ac-p').value||''});$('ac-n').value='';render();
 };
 $('cl').addEventListener('change',e=>{
+  if(e.target.dataset.real!==undefined)return;
   const row=e.target.closest('.ab');if(!row)return;
   const a=S.accts.find(x=>x.id===row.dataset.id);if(!a)return;
-  if(e.target.dataset.k==='parent'){a.parent=e.target.value;if(S.accts.some(x=>x.parent===a.id))a.parent=''}
+  if(e.target.dataset.arch!==undefined){if(a.id===S.main&&e.target.checked){alert('Il conto principale non si può archiviare.');e.target.checked=false;return}a.arch=e.target.checked}
+  else if(e.target.dataset.k==='parent'){a.parent=e.target.value;if(S.accts.some(x=>x.parent===a.id))a.parent=''}
   else if(e.target.dataset.main!==undefined)S.main=a.id;
   else if(e.target.dataset.k==='name')a.name=e.target.value.trim()||a.name;
   else if(e.target.dataset.k==='type')a.type=e.target.value;
   else if(e.target.dataset.k==='open')a.open=parseFloat(e.target.value)||0;
+  else if(e.target.dataset.k==='icon')a.icon=e.target.value.trim();
+  else if(e.target.dataset.k==='color')a.color=e.target.value;
   renderSoft();
 });
+$('so-ca').onchange=e=>{SO.ca=e.target.checked;try{localStorage.setItem(SORTK,JSON.stringify(SO))}catch(x){}rC()};
 $('so-c').onchange=e=>{SO.c=e.target.value;try{localStorage.setItem(SORTK,JSON.stringify(SO))}catch(x){}rC()};
 $('cl').addEventListener('click',e=>{
+  const rc=e.target.closest('[data-rec]');
+  if(rc){const ab=rc.closest('.ab'),id=ab.dataset.id,v=ab.querySelector('[data-real]').value;if(v==='')return;
+    const real=parseFloat(v)||0,diff=r2(real-accBal(id));
+    if(!diff){alert('Il saldo coincide: nessuna differenza.');return}
+    if(confirm('Saldo registrato '+eur(accBal(id))+', saldo reale '+eur(real)+'.\nDifferenza: '+(diff>0?'+':'−')+eur(Math.abs(diff))+'.\n\nCreare un movimento di rettifica per allineare il saldo?')){
+      S.tx.push({id:uid(),type:diff>0?'e':'u',amount:Math.abs(diff),date:tdy(),acct:id,to:'',name:'Rettifica saldo',cat:'',tags:[],note:'Riconciliazione',adj:true});copen.add(id);render()}
+    return}
   const mv=e.target.closest('[data-mv]');
   if(mv){const id=mv.closest('.ab').dataset.id,a=S.accts.find(x=>x.id===id),d=+mv.dataset.mv;
     const sib=S.accts.filter(x=>(x.parent||'')===(a.parent||'')),i=sib.indexOf(a),o=sib[i+d];if(!o)return;
@@ -1160,15 +1183,15 @@ async function syncNow(retry){
   }catch(err){stt('☁ '+(navigator.onLine?err.message:'offline'))}
   busy=false;
 }
-$('syncb').onclick=()=>{closeMenu();const p=$('synp');p.style.display=p.style.display==='none'?'':'none';$('sy-r').value=C.repo||'';$('sy-p').value=C.path||'prospetto-spese.json';$('sy-b').value=C.br||'main';$('sy-t').value='';$('sy-t').placeholder=C.tok?'Token già salvato (lascia vuoto per mantenerlo)':'Token (github_pat_...)'};
+function fillSync(){$('sy-r').value=C.repo||'';$('sy-p').value=C.path||'prospetto-spese.json';$('sy-b').value=C.br||'main';$('sy-t').value='';$('sy-t').placeholder=C.tok?'Token già salvato (lascia vuoto per mantenerlo)':'Token (github_pat_...)'}
 $('sy-s').onclick=()=>{
   const repo=$('sy-r').value.trim().replace(/^https?:\/\/github\.com\//,'').replace(/\.git$/,''),path=$('sy-p').value.trim()||'prospetto-spese.json',br=$('sy-b').value.trim()||'main',tok=$('sy-t').value.trim()||C.tok;
   if(!/^[^\/\s]+\/[^\/\s]+$/.test(repo)||!tok){alert('Inserisci repository (utente/repository) e token');return}
   if(repo!==C.repo||path!==C.path||br!==C.br){C.sha=null;C.snap=null}
-  C.repo=repo;C.path=path;C.br=br;C.tok=tok;svC();$('synp').style.display='none';syncNow();
+  C.repo=repo;C.path=path;C.br=br;C.tok=tok;svC();syncNow();
 };
 $('sy-n').onclick=()=>syncNow();
-$('sy-x').onclick=()=>{if(confirm('Disattivare la sincronizzazione su questo dispositivo? I dati locali restano.')){C={};svC();stt('');$('synp').style.display='none'}};
+$('sy-x').onclick=()=>{if(confirm('Disattivare la sincronizzazione su questo dispositivo? I dati locali restano.')){C={};svC();stt('');fillSync()}};
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)syncNow()});
 addEventListener('online',()=>syncNow());
 if(C.repo&&C.tok)stt('☁ attivo');
