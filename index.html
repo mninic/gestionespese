@@ -385,6 +385,17 @@ input.sw:checked{background:var(--ok)}input.sw:checked::after{transform:translat
 
 body::before{content:'';position:fixed;top:0;left:0;right:0;height:env(safe-area-inset-top);background:var(--bg);z-index:60;pointer-events:none}
 @media (prefers-color-scheme:light){body::before{background:#1b1f24}}
+
+.rcd{border-top:1px solid var(--bd)}.rcd:first-child{border-top:0}
+.rcd>summary{list-style:none;display:grid;grid-template-columns:minmax(0,1fr) auto 14px;align-items:center;gap:10px;padding:12px 0;cursor:pointer}
+.rcd>summary::-webkit-details-marker{display:none}
+.rcd>summary::after{content:'›';color:var(--mut);font-size:20px;line-height:1;text-align:right;transition:transform .15s}
+.rcd[open]>summary::after{transform:rotate(90deg)}
+.rn{color:var(--tx);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:15px}
+.rv{display:flex;flex-direction:column;align-items:flex-end;line-height:1.25}.rv b{font-size:15px;white-space:nowrap}.rv small{color:var(--mut);font-size:12px}
+.rs{display:flex;justify-content:space-between;gap:10px;padding:6px 24px 6px 12px;margin:0 0 0 4px;border-left:2px solid var(--bd);font-size:13px;color:var(--mut)}
+.rs span:first-child{min-width:0;overflow:hidden;text-overflow:ellipsis}.rs span:last-child{white-space:nowrap}
+.rs.rm{margin-bottom:8px;font-style:italic}
 </style>
 </head>
 <body>
@@ -658,7 +669,7 @@ body::before{content:'';position:fixed;top:0;left:0;right:0;height:env(safe-area
 </div>
 
 <script>
-const APP_VER='2.12.2';
+const APP_VER='2.12.3';
 const KEY='prospetto-spese-v1';
 const uid=()=>Math.random().toString(36).slice(2,9);
 const pad=n=>String(n).padStart(2,'0');
@@ -1669,7 +1680,7 @@ function rP(){
   $('p-cat').innerHTML=arr.length?arr.map(([r,o])=>{const c=catById(r),nm=c?(c.icon?c.icon+' ':'')+c.name:'Senza categoria';
     o.k.sort((a,b)=>b[1]-a[1]);RP.push([c?c.name:'Senza categoria','',r2(o.t)]);o.k.forEach(([id,v])=>{if(id&&id!==r)RP.push([c?c.name:'',catPath(id).split(' › ').slice(1).join(' › '),r2(v)])});
     const subs=o.k.filter(([id])=>id&&id!==r);
-    return `<details class="tpi" style="border:0"><summary style="display:flex;justify-content:space-between;gap:8px;padding:8px 0;font-size:14px"><span>${esc(nm)}</span><b>${eur(r2(o.t))} <span style="color:var(--mut);font-weight:400">${Y.u>0?Math.round(o.t/Y.u*100)+'%':''}</span></b></summary>${subs.length?subs.map(([id,v])=>`<div class="r" style="display:flex;justify-content:space-between;font-size:13px;padding:3px 0 3px 14px;color:var(--mut)"><span>${esc(catPath(id).split(' › ').slice(1).join(' › '))}</span><span>${eur(r2(v))}</span></div>`).join(''):''}<div class="r" style="display:flex;justify-content:space-between;font-size:12px;padding:3px 0 6px 14px;color:var(--mut)"><span>Media al mese</span><span>${eur(r2(o.t/(cur?now.getMonth()+1:12)))}</span></div></details>`}).join(''):'<p class="foot" style="text-align:left">Nessuna uscita in questo anno.</p>';
+    return `<details class="rcd"><summary><span class="rn">${esc(nm)}</span><span class="rv"><b>${eur(r2(o.t))}</b><small>${Y.u>0?Math.round(o.t/Y.u*100)+'%':''}</small></span></summary>${subs.map(([id,v])=>`<div class="rs"><span>${esc(catPath(id).split(' › ').slice(1).join(' › '))}</span><span>${eur(r2(v))}</span></div>`).join('')}<div class="rs rm"><span>Media al mese</span><span>${eur(r2(o.t/(cur?now.getMonth()+1:12)))}</span></div></details>`}).join(''):'<p class="foot" style="text-align:left">Nessuna uscita in questo anno.</p>';
   // top
   const tn=[...Y.nm.values()].sort((a,b)=>b.s-a.s).slice(0,5),tc=[...Y.leaf.entries()].sort((a,b)=>b[1]-a[1]).slice(0,5);
   $('p-top').innerHTML=`<small style="color:var(--mut)">Categorie</small>${tc.map(([id,v])=>`<div class="r" style="display:flex;justify-content:space-between;font-size:13px;padding:3px 0"><span>${esc(id?catPath(id):'Senza categoria')}</span><b>${eur(r2(v))}</b></div>`).join('')||'—'}<small style="color:var(--mut);display:block;margin-top:8px">Voci (per descrizione)</small>${tn.map(x=>`<div class="r" style="display:flex;justify-content:space-between;font-size:13px;padding:3px 0"><span>${esc(x.n)} <span style="color:var(--mut)">×${x.c}</span></span><b>${eur(r2(x.s))}</b></div>`).join('')||'—'}`;
