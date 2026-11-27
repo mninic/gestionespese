@@ -187,6 +187,8 @@ body.nm-open .bd,body.dm-open .bd,body.tx-open .bd{opacity:1;pointer-events:auto
 .cr{display:grid;grid-template-columns:44px minmax(0,1fr) 44px auto auto;gap:6px;align-items:center;padding:5px 0;border-top:1px solid var(--bd)}
 .cr>*{min-width:0}.cr input[type=color]{padding:2px;height:40px;width:44px}.cr .ci{text-align:center;padding:7px 2px}
 .kh{font-size:12px;color:var(--mut);margin:12px 0 2px;text-transform:uppercase;letter-spacing:.04em}
+.tpb .chk{flex:1 1 100%;margin:0}
+#bf-f{width:100%;max-width:100%;box-sizing:border-box;font-size:16px;margin-bottom:4px}
 .inr{padding:12px;border-top:1px solid var(--bd)}.inr:first-child{border-top:0}
 .inh{display:flex;gap:10px;align-items:center;justify-content:space-between}
 .inr .r{display:flex;justify-content:space-between;gap:8px;font-size:13px;margin-top:4px}.inr .r span:first-child{color:var(--mut)}
@@ -385,12 +387,14 @@ body.xsel .xbar{display:grid}body.xsel{padding-bottom:230px}body.xsel #fab{displ
 </div>
 
 <div id="v-t" style="display:none">
-  <div class="cards" id="tcards"></div>
+  <div class="panel" id="tsubp" style="display:none"><b>Abbonamenti</b><div id="tsub" style="margin-top:6px"></div></div>
+<div class="cards" id="tcards"></div>
   <div class="panel addp"><div class="sh-t"><b>Nuova voce del modello</b><button type="button" class="sh-x" aria-label="Chiudi">✕</button></div><div class="tpa">
     <input type="text" id="tp-n" placeholder="Voce (es. Affitto)">
     <input type="number" id="tp-a" step="0.01" min="0" inputmode="decimal" placeholder="Importo €">
     <label class="fl"><small>Giorno del mese</small><input type="number" id="tp-d" min="1" max="31" inputmode="numeric" value="1"></label>
     <select id="tp-c" title="Si paga da"></select>
+    <select id="tp-fr" title="Frequenza"><option value="m">Ogni mese</option><option value="b">Ogni 2 mesi</option><option value="t">Ogni 3 mesi</option><option value="s">Ogni 6 mesi</option><option value="a">Ogni anno</option><option value="n">Ogni 14 giorni</option></select>
     <select id="tp-k" title="Tipo"><option value="f">Ogni mese</option><option value="r">Rateale (fino a una data)</option></select>
     <button id="tp-b" class="pri">Aggiungi al modello</button>
     <div class="rr" id="tp-rr"><label class="fl"><small>Prima rata (facoltativa)</small><input type="date" id="tp-f"></label><label class="fl"><small>Ultima rata</small><input type="date" id="tp-e"></label></div>
@@ -498,6 +502,20 @@ body.xsel .xbar{display:grid}body.xsel{padding-bottom:230px}body.xsel #fab{displ
     <p class="foot" id="st-n" style="text-align:left"></p>
     <button id="st-d" class="dang">Elimina i movimenti generati dai prospetti</button>
   </div>
+  <div class="panel"><b>Ricorrenze e scadenze</b>
+    <p class="foot" style="text-align:left;margin:4px 0 8px">Con la generazione automatica l'app crea da sola i mesi futuri usando il modello mensile (frequenze, rate, importi variabili). I mesi che elimini non vengono ricreati.</p>
+    <label class="chk" style="margin:0 0 10px"><input type="checkbox" id="st-au"> Crea automaticamente i mesi futuri dal modello</label>
+    <div class="dgrid"><label class="w">Quanti mesi in anticipo<select id="st-an"><option value="1">1 mese</option><option value="2">2 mesi</option><option value="3">3 mesi</option><option value="6">6 mesi</option><option value="12">12 mesi</option></select></label>
+    <label class="w">Promemoria nel calendario<select id="st-rm"><option value="0">Il giorno stesso</option><option value="1">1 giorno prima</option><option value="2">2 giorni prima</option><option value="3">3 giorni prima</option><option value="7">7 giorni prima</option></select></label></div>
+    <p class="foot" style="text-align:left">Le notifiche di una web app non partono se l'app è chiusa: per essere avvisato esporta le scadenze nel calendario del telefono, che le notifica da solo.</p>
+    <button id="st-ics">Esporta scadenze in calendario (.ics)</button>
+  </div>
+  <div class="panel"><b>Importa da Budget Flow</b>
+    <p class="foot" style="text-align:left;margin:4px 0 8px">Scegli il file CSV esportato da Budget Flow. Prima di importare vedi un riepilogo. Spese ed entrate diventano movimenti, i trasferimenti (esportati su due righe, una per conto) diventano un solo trasferimento. I movimenti già presenti non vengono duplicati.</p>
+    <input type="file" id="bf-f" accept=".csv,text/csv">
+    <div id="bf-pv"></div>
+    <button id="bf-un" class="dang" style="display:none"></button>
+  </div>
 </div>
 <div id="v-c" style="display:none">
   <div class="cards" id="ccards"></div>
@@ -514,7 +532,7 @@ body.xsel .xbar{display:grid}body.xsel{padding-bottom:230px}body.xsel #fab{displ
 </div>
 
 <script>
-const APP_VER='2.5.0';
+const APP_VER='2.7.0';
 const KEY='prospetto-spese-v1';
 const uid=()=>Math.random().toString(36).slice(2,9);
 const pad=n=>String(n).padStart(2,'0');
@@ -532,6 +550,27 @@ function tplIn(t,k){
   if(fr&&k<fr)return null;
   return fr&&to?{n:mdiff(fr,k)+1,N:mdiff(fr,to)+1}:{};
 }
+const lastDay=k=>dayDate(k,31);
+const FREQ={m:'Ogni mese',b:'Ogni 2 mesi',t:'Ogni 3 mesi',s:'Ogni 6 mesi',a:'Ogni anno',n:'Ogni N giorni'};
+const FSTEP={m:1,b:2,t:3,s:6,a:12};
+/* date in cui una voce del modello cade nel mese k (può essere nessuna, una o più) */
+function tplOcc(t,k){
+  if(tplIn(t,k)===null)return [];
+  const f=t.kind==='r'?'m':(t.freq||'m'),to=(t.to||'').slice(0,7),fr=(t.from||'').slice(0,7);
+  const dd=()=>t.last?lastDay(k):dayDate(k,t.day);
+  if(f==='m')return [dd()];
+  if(to&&k>to)return [];
+  if(f==='n'){
+    const n=Math.max(1,+t.every||1),st=t.start;if(!st)return [];
+    const D=86400000,s0=Date.UTC(+st.slice(0,4),+st.slice(5,7)-1,+st.slice(8,10)),y=+k.slice(0,4),m=+k.slice(5,7),a=Date.UTC(y,m-1,1),z=Date.UTC(y,m,0);
+    let d=s0;if(d<a)d+=Math.ceil((a-d)/(D*n))*n*D;
+    const o=[];for(;d<=z;d+=n*D)o.push(new Date(d).toISOString().slice(0,10));return o;
+  }
+  if(!fr)return [];const df=mdiff(fr,k);
+  return (df>=0&&df%FSTEP[f]===0)?[dd()]:[];
+}
+const tplPerMonth=t=>{const f=t.kind==='r'?'m':(t.freq||'m'),a=+t.amount||0;return f==='n'?a*30.4375/Math.max(1,+t.every||1):a/FSTEP[f]};
+const freqLabel=t=>{const f=t.kind==='r'?'m':(t.freq||'m');return f==='n'?'Ogni '+Math.max(1,+t.every||1)+' giorni':FREQ[f]+(t.last?' · ultimo giorno':'')};
 let S=null,flt='all';
 try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){}
 if(!S||!S.months){const n=new Date(),k=n.getFullYear()+'-'+pad(n.getMonth()+1);S={cur:k,months:{[k]:[]}}}
@@ -547,7 +586,7 @@ function norm(){
   S.debts.forEach(x=>{x.pay=x.pay||[];if(x.acct&&!ok(x.acct))x.acct='';x.pay.forEach(p=>{if(p.acct&&!ok(p.acct))p.acct=''})});
   S.accts.forEach(a=>{a.open=+a.open||0;const p=S.accts.find(x=>x.id===a.parent);a.parent=(p&&p.id!==a.id)?p.id:''});
   S.accts.forEach(a=>{const p=S.accts.find(x=>x.id===a.parent);if(p&&p.parent)a.parent=''});
-  S.set=(S.set&&typeof S.set==='object')?S.set:{};S.set.pause=!!S.set.pause;S.set.from=S.set.from||'';
+  S.set=(S.set&&typeof S.set==='object')?S.set:{};S.set.pause=!!S.set.pause;S.set.from=S.set.from||'';S.set.auto=!!S.set.auto;S.set.imps=Array.isArray(S.set.imps)?S.set.imps:[];S.set.autoN=[1,2,3,6,12].includes(+S.set.autoN)?+S.set.autoN:3;S.set.autoUntil=S.set.autoUntil||'';S.set.rem=[0,1,2,3,7].includes(+S.set.rem)?+S.set.rem:1;
   if(!Array.isArray(S.cats)||!S.cats.length)S.cats=DEFCATS.map(c=>({...c}));
   S.tx=Array.isArray(S.tx)?S.tx.filter(t=>t&&t.id&&t.date):[];
   S.tx.forEach(t=>{t.adj=!!t.adj;t.type=['u','e','t'].includes(t.type)?t.type:'u';t.amount=Math.abs(+t.amount||0);if(!ok(t.acct))t.acct=S.main;if(t.type==='t'){if(!ok(t.to)||t.to===t.acct)t.to=(S.accts.find(a=>a.id!==t.acct)||{}).id||''}else t.to='';t.tags=Array.isArray(t.tags)?t.tags:[];t.note=t.note||'';t.name=t.name||'';t.cat=t.cat||''});
@@ -558,6 +597,7 @@ function norm(){
   S.fav=Array.isArray(S.fav)?S.fav.filter(f=>f&&f.id):[];
   S.tx.forEach(t=>{if(Array.isArray(t.split)){t.split=t.split.map(x=>({cat:x.cat||'',amount:Math.abs(+x.amount||0)}));if(t.split.length<2||t.type==='t')delete t.split}else delete t.split});
   S.tpl=Array.isArray(S.tpl)?S.tpl:[];
+  S.tpl.forEach(t=>{t.freq=['m','b','t','s','a','n'].includes(t.freq)?t.freq:'m';t.last=!!t.last;t.every=Math.max(1,parseInt(t.every)||14);t.start=t.start||'';t.sub=!!t.sub;t.var=!!t.var});
   S.tpl.forEach(t=>{t.kind=t.kind==='r'?'r':'f';if(!ok(t.src))t.src=S.main});
 }
 norm();
@@ -584,7 +624,7 @@ function renderSoft(ev){save();setTimeout(()=>{const a=document.activeElement,t=
 document.addEventListener('focusout',()=>{if(!pendR)return;setTimeout(()=>{if(pickerOn())return;pendR=false;render()},120)});
 
 function render(){
-  recon();fillSel();
+  autoGen();recon();fillSel();
   if(($('a-d').value||'').slice(0,7)!==S.cur)$('a-d').value=S.cur+'-10';
   const keys=Object.keys(S.months).sort();
   $('mon').innerHTML=keys.map(k=>`<option value="${k}"${k===S.cur?' selected':''}>${monthLabel(k)}</option>`).join('');
@@ -613,7 +653,9 @@ function render(){
     if(i.paid)c='<span class="chip okc">Pagato</span>';
     else if(i.amount>0){const d=Math.round((new Date(i.date)-new Date(today))/864e5);
       if(d<0)c='<span class="chip late">Scaduto</span>';else if(d<=3)c='<span class="chip soon">'+(d===0?'Oggi':'tra '+d+' gg')+'</span>';}
-    const rc=i.rt?`<span class="chip rate">Rata ${i.rn}/${i.rt}</span>`:i.rto?`<span class="chip rate">Rata · fino a ${mmyy(i.rto)}</span>`:'';
+    const pv=i.tid&&!i.paid?(()=>{const p=lastKnown(i.tid,S.cur);return p===null?'':(+i.amount===p?'':`<span class="chip rate" title="Mese scorso ${eur(p)}">${i.amount>p?'▲ +':'▼ −'}${eur(Math.abs(r2(i.amount-p)))} vs mese scorso</span>`)})():'';
+    const es=i.est&&!i.paid?'<span class="chip rate">Stima</span>':'';
+    const rc=es+pv+(i.rt?`<span class="chip rate">Rata ${i.rn}/${i.rt}</span>`:i.rto?`<span class="chip rate">Rata · fino a ${mmyy(i.rto)}</span>`:'');
     return `<tr data-id="${i.id}" class="${i.paid?'paid':''}${(rc||c)?' hc':''}">
       <td><input type="date" data-k="date" value="${i.date}"></td>
       <td><input class="nm" data-k="name" value="${esc(i.name)}"><input class="nt" data-k="note" placeholder="nota" value="${esc(i.note)}"></td>
@@ -630,6 +672,7 @@ $('rows').addEventListener('change',e=>{
   const it=items().find(x=>x.id===tr.dataset.id);if(!it)return;
   it[k]=k==='paid'?e.target.checked:k==='amount'?(parseFloat(e.target.value)||0):e.target.value;
   if(k==='date'&&!e.target.value)it.date=S.cur+'-01';
+  if(k==='amount')delete it.est;
   if(k==='paid')it.paidOn=e.target.checked?tdy():'';
   renderSoft(typeof e!=='undefined'?e:null);
 });
@@ -855,18 +898,21 @@ $('dmd').addEventListener('toggle',e=>{if(e.target.classList&&e.target.classList
 const topen=new Set();
 function rT(){
   const nowK=tdy().slice(0,7);
-  const fx=S.tpl.filter(t=>t.kind!=='r'),act=S.tpl.filter(t=>t.kind==='r'&&!(t.to&&t.to.slice(0,7)<nowK));
+  const fx=S.tpl.filter(t=>t.kind!=='r'&&(t.freq||'m')==='m'),act=S.tpl.filter(t=>t.kind==='r'&&!(t.to&&t.to.slice(0,7)<nowK));
   const sm=l=>r2(l.reduce((a,t)=>a+(+t.amount||0),0));
   $('tcards').innerHTML=`<div class="card"><small>Voci ogni mese</small><b>${eur(sm(fx))}</b><span class="s">${fx.length} ${fx.length===1?'voce':'voci'}</span></div>
    <div class="card"><small>Rate in corso</small><b>${eur(sm(act))}</b><span class="s">${act.length} ${act.length===1?'rata':'rate'} al mese</span></div>
-   <div class="card hl"><small>Totale mensile del modello</small><b>${eur(sm(fx)+sm(act))}</b><span class="s">se includi tutto</span></div>`;
+   <div class="card hl"><small>Costo medio al mese</small><b>${eur(r2(S.tpl.filter(t=>!(t.kind==='r'&&t.to&&t.to.slice(0,7)<nowK)).reduce((a,t)=>a+tplPerMonth(t),0)))}</b><span class="s">rinnovi annuali e trimestrali divisi sui mesi</span></div>`;
+  const subs=S.tpl.filter(t=>t.sub).map(t=>{let nx=null;for(let i=0,k=nowK;i<37&&!nx;i++,k=nextK(k)){const o=tplOcc(t,k).filter(d=>d>=tdy());if(o.length)nx=o[0]}return {t,nx,pm:tplPerMonth(t)}}).sort((a,b)=>(a.nx||'9').localeCompare(b.nx||'9'));
+  $('tsubp').style.display=subs.length?'':'none';
+  $('tsub').innerHTML=subs.length?`<div class="r" style="display:flex;justify-content:space-between;font-size:13px;padding-bottom:6px"><span>Totale</span><b>${eur(r2(subs.reduce((a,x)=>a+x.pm,0)))} / mese · ${eur(r2(subs.reduce((a,x)=>a+x.pm,0)*12))} / anno</b></div>`+subs.map(x=>`<div class="inr"><div class="inh"><span class="txm"><b>${esc(x.t.name)}</b><span>${esc(freqLabel(x.t))} · ${x.nx?'prossimo rinnovo '+fd(x.nx):'nessun rinnovo previsto'}</span></span><b>${eur(+x.t.amount||0)}</b></div><div class="r"><span>Equivale a</span><span>${eur(r2(x.pm))} / mese · ${eur(r2(x.pm*12))} / anno</span></div></div>`).join(''):'';
   $('tl').innerHTML=[...S.tpl].sort((a,b)=>(a.day||0)-(b.day||0)||a.name.localeCompare(b.name)).map(t=>{
     const r=t.kind==='r',to=(t.to||'').slice(0,7),fr=(t.from||'').slice(0,7),end=r&&to&&to<nowK;
     let info='';
     if(r)info=end?'<span class="chip late">Terminata</span>':`<span class="s">${fr&&to?(mdiff(fr,to)+1)+' rate · ':''}${to?'restano '+Math.max(0,mdiff(nowK,to)+1)+' dal mese corrente':'senza data finale'}</span>`;
-    const sub=r?(end?'Rateale · terminata':'Rateale'+(to?' · fino a '+mmyy(to):'')):'Ogni mese';
+    const sub=r?(end?'Rateale · terminata':'Rateale'+(to?' · fino a '+mmyy(to):'')):freqLabel(t)+(t.sub?' · abbonamento':'');
     return `<details class="tpi" data-id="${t.id}"${topen.has(t.id)?' open':''}>
-      <summary><span class="tps"><b class="ppn">${esc(t.name)||'(senza nome)'}</b><span class="pps">${sub} · giorno ${t.day||1}${accName(t.src)?' · '+esc(accName(t.src)):''}</span></span><b class="tpm">${eur(+t.amount||0)}</b></summary>
+      <summary><span class="tps"><b class="ppn">${esc(t.name)||'(senza nome)'}</b><span class="pps">${sub}${(t.freq||'m')==='n'&&!r?'':' · giorno '+(t.last&&!r?'ultimo':t.day||1)}${accName(t.src)?' · '+esc(accName(t.src)):''}</span></span><b class="tpm">${eur(+t.amount||0)}</b></summary>
       <div class="tpb">
       <label class="f n"><small>Voce</small><input data-k="name" value="${esc(t.name)}"></label>
       <label class="f a"><small>Importo €</small><input type="number" step="0.01" min="0" inputmode="decimal" data-k="amount" value="${t.amount}"></label>
@@ -874,6 +920,13 @@ function rT(){
       <label class="f c"><small>Si paga da</small><select data-k="src">${accOpts(t.src)}</select></label>
       <label class="f c"><small>Categoria</small><select data-k="cat">${catOpts(t.cat,'u')}</select></label>
       <label class="f k"><small>Tipo</small><select data-k="kind"><option value="f"${r?'':' selected'}>Ogni mese</option><option value="r"${r?' selected':''}>Rateale</option></select></label>
+      ${r?'':`<label class="f k"><small>Frequenza</small><select data-k="freq">${Object.entries(FREQ).map(([k,v])=>`<option value="${k}"${(t.freq||'m')===k?' selected':''}>${v}</option>`).join('')}</select></label>`}
+      ${!r&&t.freq==='n'?`<label class="f d"><small>Ogni N gg</small><input type="number" min="1" inputmode="numeric" data-k="every" value="${t.every||14}"></label><label class="f k"><small>Partendo dal</small><input type="date" data-k="start" value="${t.start||''}"></label>`:''}
+      ${!r&&['b','t','s','a'].includes(t.freq)?`<div class="tpr"><label class="f"><small>Primo mese</small><input type="month" data-k="from" value="${(t.from||'').slice(0,7)}"></label><label class="f"><small>Fino al mese (facoltativo)</small><input type="month" data-k="to" value="${(t.to||'').slice(0,7)}"></label></div>`:''}
+      ${!r&&t.freq==='n'?`<div class="tpr"><label class="f"><small>Fino al mese (facoltativo)</small><input type="month" data-k="to" value="${(t.to||'').slice(0,7)}"></label></div>`:''}
+      ${!r&&t.freq!=='n'?`<label class="chk"><input type="checkbox" data-k="last"${t.last?' checked':''}> Ultimo giorno del mese</label>`:''}
+      <label class="chk"><input type="checkbox" data-k="var"${t.var?' checked':''}> Importo variabile (bolletta): proponi l'ultimo importo noto</label>
+      <label class="chk"><input type="checkbox" data-k="sub"${t.sub?' checked':''}> È un abbonamento</label>
       ${r?`<div class="tpr"><label class="f"><small>Prima rata</small><input type="date" data-k="from" value="${t.from||''}"></label><label class="f"><small>Ultima rata</small><input type="date" data-k="to" value="${t.to||''}"></label>${info}</div>`:''}
       <button data-del class="tpd">Elimina dal modello</button>
       </div>
@@ -882,7 +935,8 @@ function rT(){
 $('tl').addEventListener('change',e=>{
   const row=e.target.closest('.tpi'),k=e.target.dataset.k;if(!row||!k)return;
   const t=S.tpl.find(x=>x.id===row.dataset.id);if(!t)return;
-  t[k]=k==='amount'?(parseFloat(e.target.value)||0):k==='day'?Math.min(31,Math.max(1,parseInt(e.target.value)||1)):e.target.value;
+  t[k]=e.target.type==='checkbox'?e.target.checked:k==='amount'?(parseFloat(e.target.value)||0):k==='day'?Math.min(31,Math.max(1,parseInt(e.target.value)||1)):k==='every'?Math.max(1,parseInt(e.target.value)||1):e.target.value;
+  if(k==='freq'){if(['b','t','s','a'].includes(t.freq)&&!t.from)t.from=tdy().slice(0,7);if(t.freq==='n'&&!t.start){t.start=tdy();t.every=t.every||14}}
   renderSoft(typeof e!=='undefined'?e:null);
 });
 $('tl').addEventListener('toggle',e=>{const d=e.target;if(d.classList&&d.classList.contains('tpi')){d.open?topen.add(d.dataset.id):topen.delete(d.dataset.id)}},true);
@@ -896,8 +950,8 @@ $('tp-b').onclick=()=>{
   const n=$('tp-n').value.trim();if(!n){$('tp-n').focus();return}
   const kind=$('tp-k').value,to=$('tp-e').value,from=$('tp-f').value;
   if(kind==='r'&&(!to||(from&&to<from))){$('tp-e').focus();return}
-  S.tpl.push({id:uid(),name:n,amount:parseFloat($('tp-a').value)||0,day:Math.min(31,Math.max(1,parseInt($('tp-d').value)||1)),src:$('tp-c').value||S.main,kind,note:'',...(kind==='r'?{from,to}:{})});
-  ['tp-n','tp-a','tp-f','tp-e'].forEach(i=>$(i).value='');$('tp-d').value=1;$('tp-k').value='f';$('tp-rr').classList.remove('on');closeSheet();render();
+  S.tpl.push({id:uid(),name:n,amount:parseFloat($('tp-a').value)||0,day:Math.min(31,Math.max(1,parseInt($('tp-d').value)||1)),src:$('tp-c').value||S.main,kind,note:'',...(kind==='r'?{from,to}:{}),...(kind==='f'&&$('tp-fr').value!=='m'?($('tp-fr').value==='n'?{freq:'n',every:14,start:tdy()}:{freq:$('tp-fr').value,from:tdy().slice(0,7)}):{})});
+  ['tp-n','tp-a','tp-f','tp-e'].forEach(i=>$(i).value='');$('tp-d').value=1;$('tp-k').value='f';$('tp-fr').value='m';$('tp-rr').classList.remove('on');closeSheet();render();
 };
 $('tp-imp').onclick=()=>{
   const have=new Set(S.tpl.map(t=>t.name.trim().toLowerCase()));let n=0;
@@ -912,11 +966,28 @@ let NM={k:'',rows:[],fb:false};
 function nmRows(k){
   if(S.tpl.length){
     NM.fb=false;
-    return S.tpl.map(t=>({t,st:tplIn(t,k)})).filter(r=>r.st!==null).sort((a,b)=>(a.t.day||0)-(b.t.day||0)||a.t.name.localeCompare(b.t.name)).map(r=>({...r,on:true,amount:r.t.amount}));
+    const out=[];
+    S.tpl.forEach(t=>{const st=tplIn(t,k);if(st===null)return;tplOcc(t,k).forEach(date=>{const lk=t.var?lastKnown(t.id,k):null;out.push({t,st,date,on:true,amount:lk!==null?lk:t.amount,est:lk!==null})})});
+    return out.sort((a,b)=>a.date.localeCompare(b.date)||a.t.name.localeCompare(b.t.name));
   }
   NM.fb=true;
   const keys=Object.keys(S.months).sort(),prev=S.months[keys[keys.length-1]]||[];
   return prev.map(i=>({t:{id:'',name:i.name,amount:i.amount,day:+i.date.slice(8,10)||1,src:i.src,kind:'f',note:i.note||''},st:{},on:true,amount:i.amount,src:i}));
+}
+/* ultimo importo noto di una voce del modello (mesi precedenti a k) */
+function lastKnown(tid,k){const ks=Object.keys(S.months).filter(x=>x<k).sort().reverse();for(const m of ks){const it=S.months[m].find(i=>i.tid===tid&&+i.amount>0);if(it)return it.amount}return null}
+function mkItems(rows,k){return rows.map(r=>({id:uid(),date:r.date||dayDate(k,r.t.day),name:r.t.name,amount:r.amount,src:S.accts.some(a=>a.id===r.t.src)?r.t.src:S.main,paid:false,note:r.t.note||'',cat:r.t.cat||'',
+    ...(r.t.id?{tid:r.t.id}:{}),...(r.est?{est:true}:{}),
+    ...(r.t.kind==='r'?(r.st&&r.st.N?{rn:r.st.n,rt:r.st.N}:{rto:(r.t.to||'').slice(0,7)}):{})}))}
+/* generazione automatica dei mesi futuri dal modello */
+function autoGen(){
+  if(!S.set.auto||!S.tpl.length)return;
+  const keys=Object.keys(S.months).sort(),mx=keys[keys.length-1]||'';
+  if(!S.set.autoUntil||S.set.autoUntil<mx)S.set.autoUntil=mx;
+  if(!S.set.autoUntil)return;
+  let tg=tdy().slice(0,7);for(let i=0;i<S.set.autoN;i++)tg=nextK(tg);
+  let k=S.set.autoUntil;
+  while(nextK(k)<=tg){k=nextK(k);if(!S.months[k])S.months[k]=mkItems(nmRows(k),k);S.set.autoUntil=k}
 }
 function nmTot(){
   const sel=NM.rows.filter(r=>r.on);
@@ -931,7 +1002,7 @@ function rNM(){
   if(!NM.k){$('nm-b').innerHTML='<p>I prossimi 12 mesi esistono già.</p>';nmTot();return}
   const rows=NM.rows.map((r,i)=>{
     const rt=r.t.kind==='r'?(r.st&&r.st.N?' · Rata '+r.st.n+'/'+r.st.N:' · Rata fino a '+mmyy((r.t.to||'').slice(0,7))):'';
-    return `<label class="nmi"><input type="checkbox" data-i="${i}"${r.on?' checked':''}><span class="nmt"><b>${esc(r.t.name)}</b><small>giorno ${r.t.day||1} · ${esc(accName(r.t.src))}${rt}</small></span><input type="number" class="nma" step="0.01" min="0" inputmode="decimal" data-a="${i}" value="${r.amount}"></label>`}).join('');
+    return `<label class="nmi"><input type="checkbox" data-i="${i}"${r.on?' checked':''}><span class="nmt"><b>${esc(r.t.name)}</b><small>${r.date?'giorno '+(+r.date.slice(8,10))+(r.t.freq==='n'?' '+fd(r.date):''):'giorno '+(r.t.day||1)} · ${esc(accName(r.t.src))}${rt}${r.est?' · ultimo importo noto':''}</small></span><input type="number" class="nma" step="0.01" min="0" inputmode="decimal" data-a="${i}" value="${r.amount}"></label>`}).join('');
   const ended=NM.fb?[]:S.tpl.filter(t=>tplIn(t,NM.k)===null);
   $('nm-b').innerHTML=`<label class="fl"><small>Mese da creare</small><select id="nm-m">${opts.map(o=>`<option value="${o}"${o===NM.k?' selected':''}>${monthLabel(o)}</option>`).join('')}</select></label>
   ${NM.fb?`<div class="nmb">Non hai ancora un modello: ti propongo le voci dell’ultimo mese.<label><input type="checkbox" id="nm-sv" checked> Salva le voci scelte nel modello per i prossimi mesi</label></div>`:''}
@@ -954,9 +1025,7 @@ $('nm-ok').onclick=()=>{
   const k=NM.k;if(!k)return;
   const sel=NM.rows.filter(r=>r.on),save=NM.fb&&$('nm-sv')&&$('nm-sv').checked;
   if(save)sel.forEach(r=>{const t={...r.t,id:uid()};S.tpl.push(t);r.t=t;if(r.src)r.src.tid=t.id});
-  S.months[k]=sel.map(r=>({id:uid(),date:dayDate(k,r.t.day),name:r.t.name,amount:r.amount,src:S.accts.some(a=>a.id===r.t.src)?r.t.src:S.main,paid:false,note:r.t.note||'',cat:r.t.cat||'',
-    ...(r.t.id?{tid:r.t.id}:{}),
-    ...(r.t.kind==='r'?(r.st&&r.st.N?{rn:r.st.n,rt:r.st.N}:{rto:(r.t.to||'').slice(0,7)}):{})}));
+  S.months[k]=mkItems(sel.map(r=>r.est&&+r.amount!==+r.t.amount&&false?r:r),k);
   S.cur=k;closeM();render();
 };
 $('newm').onclick=()=>{NM.k='';rNM();openM('nmd')};
@@ -971,13 +1040,14 @@ function catFlat(kind){const out=[];const walk=(p,d)=>catKids(p).forEach(c=>{if(
 const catOpts=(sel,kind,blank)=>`<option value="">${blank||'Senza categoria'}</option>`+catFlat(kind).map(({c,d})=>`<option value="${c.id}"${c.id===sel?' selected':''}>${'  '.repeat(d)}${esc(c.icon||'')} ${esc(c.name)}</option>`).join('');
 const accBal=id=>{const a=S.accts.find(x=>x.id===id);let s=+(a&&a.open)||0;S.tx.forEach(t=>{const m=+t.amount||0;if(t.type==='u'&&t.acct===id)s-=m;else if(t.type==='e'&&t.acct===id)s+=m;else if(t.type==='t'){if(t.acct===id)s-=m;if(t.to===id)s+=m}});return r2(s)};
 const accTot=id=>r2(accIds(id).reduce((s,x)=>s+accBal(x),0));
-function refItem(ref){const p=String(ref).split(':');if(p[0]==='i')return S.inc.find(x=>x.id===p[1])||null;if(p[0]==='m'){for(const l of Object.values(S.months)){const i=l.find(x=>x.id===p[1]);if(i)return i}return null}return S.annual.find(x=>x.id===p[1])||null}
+function refItem(ref){const p=String(ref).split(':');if(p[0]==='d')return S.debts.find(x=>x.id===p[1])||null;if(p[0]==='i')return S.inc.find(x=>x.id===p[1])||null;if(p[0]==='m'){for(const l of Object.values(S.months)){const i=l.find(x=>x.id===p[1]);if(i)return i}return null}return S.annual.find(x=>x.id===p[1])||null}
 /* Le voci segnate "pagate" generano una transazione reale (collegata con ref); si ricalcolano a ogni render */
 function recon(){
   if(S.set.pause)return;
   const want=new Map();
   Object.values(S.months).forEach(l=>l.forEach(i=>{if(i.paid&&+i.amount>0)want.set('m:'+i.id,{date:i.paidOn||i.date,amount:+i.amount,acct:i.src,name:i.name,cat:i.cat||''})}));
   S.annual.forEach(a=>Object.keys(a.paid||{}).forEach(y=>{if(a.paid[y]&&+a.amount>0)want.set('a:'+a.id+':'+y,{date:(a.paidOn&&a.paidOn[y])||adate(a,+y),amount:+a.amount,acct:a.src,name:a.name,cat:a.cat||''})}));
+  S.debts.forEach(x=>(x.pay||[]).forEach(p=>{if(p.acct&&+p.a>0)want.set('d:'+x.id+':'+p.id,{type:x.dir==='d'?'u':'e',date:p.date||x.date,amount:+p.a,acct:p.acct,to:'',name:(String(x.who||'').trim()||'Debito')+' · '+(x.dir==='d'?'restituzione':'incasso'),cat:''})}));
   if(S.set.from)want.forEach((w,k)=>{if(w.date<S.set.from)want.delete(k)});
   S.inc.forEach(n=>Object.keys(n.rec).forEach(k=>{const r=n.rec[k];if(!(r&&+r.amt>0))return;
     want.set('i:'+n.id+':'+k,{type:'e',date:r.on||dayDate(k,n.day),amount:+r.amt,acct:n.acct,to:'',name:n.name,cat:n.cat||''});
@@ -1070,9 +1140,9 @@ function openTX(id,pre){
   $('tx-m').value=d.amount;$('tx-d').value=d.date;$('tx-n').value=d.name;$('tx-a').value=d.acct;$('tx-b').value=d.to||'';$('tx-c').value=d.cat;$('tx-g').value=(d.tags||[]).join(', ');$('tx-o').value=d.note;
   const lk=!!(t&&t.ref);
   ['tx-m','tx-d','tx-n','tx-a','tx-b'].forEach(i=>$(i).disabled=lk);document.querySelectorAll('#tx-ty button').forEach(b=>b.disabled=lk);
-  $('tx-lk').textContent=lk?'Movimento generato da una voce (Mensile, Annuali o Entrate): importo, data, nome e conto si cambiano dalla voce. Qui puoi impostare categoria, tag e note.':'';
+  $('tx-lk').textContent=lk?'Movimento generato da una voce (Mensile, Annuali, Entrate o Debiti e crediti): importo, data, nome e conto si cambiano dalla voce. Qui puoi impostare categoria, tag e note.':'';
   $('tx-ap').style.display=lk?'':'none';
-  $('tx-x').style.display=t?'':'none';$('tx-x').textContent=lk?(String(t.ref).startsWith('i:')?'Annulla la ricezione':'Segna la voce come non pagata'):'Elimina movimento';
+  $('tx-x').style.display=t?'':'none';$('tx-x').textContent=lk?(String(t.ref).startsWith('i:')?'Annulla la ricezione':String(t.ref).startsWith('d:')?'Elimina il pagamento del debito':'Segna la voce come non pagata'):'Elimina movimento';
   $('tx-x').className=lk?'':'dang';
   $('tx-spr').textContent='';if(SPL.length)splInfo();
 }
@@ -1104,7 +1174,7 @@ $('tx-fv').addEventListener('click',e=>{const b=e.target.closest('[data-f]');if(
   SPL=[];setTy(f.type,f.cat);$('tx-m').value=f.amount||'';$('tx-n').value=f.name;if(S.accts.some(a=>a.id===f.acct))$('tx-a').value=f.acct;$('tx-b').value=f.to||'';$('tx-c').value=f.cat||'';$('tx-g').value=(f.tags||[]).join(', ');renderSplit();$('tx-m').focus()});
 $('tx-x').onclick=()=>{
   const t=S.tx.find(x=>x.id===TX);if(!t)return;
-  if(t.ref){const it=refItem(t.ref);if(it){const p=t.ref.split(':');if(p[0]==='i'){delete it.rec[p[2]]}else if(p[0]==='m'){it.paid=false;it.paidOn=''}else{(it.paid=it.paid||{})[p[2]]=false}}closeM();render();return}
+  if(t.ref){const it=refItem(t.ref);if(it){const p=t.ref.split(':');if(p[0]==='i'){delete it.rec[p[2]]}else if(p[0]==='m'){it.paid=false;it.paidOn=''}else if(p[0]==='d'){it.pay=it.pay.filter(q=>q.id!==p[2])}else{(it.paid=it.paid||{})[p[2]]=false}}closeM();render();return}
   if(confirm('Eliminare questo movimento?')){S.tx=S.tx.filter(x=>x.id!==TX);closeM();render()}
 };
 /* selezione multipla */
@@ -1214,11 +1284,109 @@ $('in-b').onclick=()=>{const nm=$('in-n').value.trim();if(!nm){$('in-n').focus()
 function rS(){
   $('st-fl').innerHTML=S.fav.map(f=>`<div class="r" style="display:flex;justify-content:space-between;gap:8px;align-items:center;padding:6px 0;border-top:1px solid var(--bd)" data-id="${f.id}"><span>★ ${esc(f.name)}${f.amount?' · '+eur(f.amount):''}</span><button data-fd aria-label="Elimina preferito">✕</button></div>`).join('')||'<p class="foot" style="text-align:left">Nessun preferito.</p>';
   $('st-p').checked=S.set.pause;$('st-d').disabled=!S.set.pause;
+  bfUndoBtn();$('st-au').checked=S.set.auto;$('st-an').value=S.set.autoN;$('st-an').disabled=!S.set.auto;$('st-rm').value=S.set.rem;
   if(document.activeElement!==$('st-f'))$('st-f').value=S.set.from||'';
   const g=S.tx.filter(t=>t.ref).length;
   $('st-n').textContent=(S.set.pause?'Generazione sospesa. ':'Generazione attiva. ')+g+(g===1?' movimento generato':' movimenti generati')+' dai prospetti, '+(S.tx.length-g)+' inseriti a mano. '+(S.set.pause?'':'Per eliminare i movimenti generati sospendi prima la generazione.');
 }
 $('st-fl').addEventListener('click',e=>{const b=e.target.closest('[data-fd]');if(!b)return;S.fav=S.fav.filter(f=>f.id!==b.closest('[data-id]').dataset.id);render()});
+$('st-au').onchange=()=>{S.set.auto=$('st-au').checked;render()};
+$('st-an').onchange=()=>{S.set.autoN=+$('st-an').value;render()};
+$('st-rm').onchange=()=>{S.set.rem=+$('st-rm').value;save()};
+$('st-ics').onclick=()=>{
+  const t0=tdy(),ev=[];
+  Object.values(S.months).forEach(l=>l.forEach(i=>{if(!i.paid&&+i.amount>0&&i.date>=t0)ev.push({u:'m'+i.id,d:i.date,n:i.name,a:i.amount})}));
+  const y0=+t0.slice(0,4);
+  S.annual.forEach(a=>[y0,y0+1].forEach(y=>{if((a.paid||{})[y]||!(+a.amount>0))return;const d=y+'-'+pad(a.m)+'-'+pad(a.d||1);if(d>=t0)ev.push({u:'a'+a.id+y,d,n:a.name,a:a.amount})}));
+  if(!ev.length){alert('Nessuna scadenza futura da esportare.');return}
+  const ics=s=>String(s).replace(/[\\;,]/g,m=>'\\'+m).replace(/\n/g,' '),ymd=d=>d.replace(/-/g,''),nx=d=>{const x=new Date(d+'T00:00:00Z');x.setUTCDate(x.getUTCDate()+1);return x.toISOString().slice(0,10).replace(/-/g,'')};
+  const L=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Prospetto spese//IT','CALSCALE:GREGORIAN'];
+  ev.sort((a,b)=>a.d.localeCompare(b.d)).forEach(e=>L.push('BEGIN:VEVENT','UID:'+e.u+'@prospetto-spese','DTSTAMP:'+new Date().toISOString().replace(/[-:]|\.\d+/g,''),'DTSTART;VALUE=DATE:'+ymd(e.d),'DTEND;VALUE=DATE:'+nx(e.d),'SUMMARY:'+ics(e.n+' · '+eur(e.a)),'BEGIN:VALARM','ACTION:DISPLAY','DESCRIPTION:'+ics(e.n),'TRIGGER:-P'+S.set.rem+'D','END:VALARM','END:VEVENT'));
+  L.push('END:VCALENDAR');
+  const b=new Blob([L.join('\r\n')],{type:'text/calendar'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='scadenze.ics';document.body.appendChild(a);a.click();a.remove();
+};
+
+/* ---- Import da Budget Flow ---- */
+function parseCSV(t){const o=[];let r=[],f='',q=false;t=t.replace(/^﻿/,'');
+  for(let i=0;i<t.length;i++){const c=t[i];
+    if(q){if(c==='"'){if(t[i+1]==='"'){f+='"';i++}else q=false}else f+=c}
+    else if(c==='"')q=true;else if(c===','){r.push(f);f=''}
+    else if(c==='\n'||c==='\r'){if(c==='\r'&&t[i+1]==='\n')i++;r.push(f);f='';if(r.length>1||r[0]!=='')o.push(r);r=[]}
+    else f+=c}
+  if(f!==''||r.length){r.push(f);o.push(r)}
+  const h=o.shift()||[];return o.map(x=>{const j={};h.forEach((k,i)=>j[k.trim()]=(x[i]||'').trim());return j})}
+let BF=null;
+const bfKey=t=>[t.date,t.type,r2(t.amount),t.acct,t.to||'',(t.name||'').toLowerCase()].join('|');
+function bfBuild(rows){
+  const tx=[],tr=new Map();
+  rows.forEach(r=>{const a=parseFloat(String(r.Amount).replace(',','.'));if(!r.Date||!isFinite(a)||a===0||!r['Source Account'])return;
+    const d=r.Date.slice(0,10);
+    if(r['Target Account']){const k=d+'|'+Math.abs(a)+'|'+[r['Source Account'],r['Target Account']].sort().join('>');if(!tr.has(k))tr.set(k,{d,neg:[],pos:[]});tr.get(k)[a<0?'neg':'pos'].push(r);return}
+    const nm=r.Notes||r.Payee||r.Category||(a<0?'Spesa':'Entrata');
+    tx.push({date:d,type:a<0?'u':'e',amount:Math.abs(a),acct:r['Source Account'],to:'',folder:r.Folder,cat:r.Category,name:nm,note:(r.Notes&&r.Payee)?'Beneficiario: '+r.Payee:''})});
+  tr.forEach(g=>{const n=Math.max(g.neg.length,g.pos.length);for(let i=0;i<n;i++){const neg=g.neg[i],r=neg||g.pos[i];
+    const a=Math.abs(parseFloat(String(r.Amount).replace(',','.')));
+    tx.push({date:g.d,type:'t',amount:a,acct:neg?r['Source Account']:r['Target Account'],to:neg?r['Target Account']:r['Source Account'],folder:'',cat:'',name:r.Notes||r.Payee||'Trasferimento',note:''})}});
+  return tx.sort((a,b)=>a.date.localeCompare(b.date));
+}
+function bfView(){
+  if(!BF)return $('bf-pv').innerHTML='';
+  const from=BF.from||'',L=BF.tx.filter(t=>!from||t.date>=from);
+  const names=[...new Set(L.flatMap(t=>[t.acct,t.to].filter(Boolean)))].sort((a,b)=>a.localeCompare(b,'it'));
+  names.forEach(n=>{if(BF.map[n]===undefined){const m=S.accts.find(a=>a.name.toLowerCase()===n.toLowerCase());BF.map[n]=m?m.id:(n==='Conto corrente'?S.main:'__new')}});
+  const have=new Map();S.tx.forEach(t=>{if(t.adj)return;const k=bfKey(t);have.set(k,(have.get(k)||0)+1)});
+  let dup=0,neu=0;const resolve=n=>BF.map[n];
+  L.forEach(t=>{t._k=null;const a=resolve(t.acct),b=t.to?resolve(t.to):'';
+    if(a==='__new'||b==='__new'){neu++;t._dup=false;return}
+    const k=bfKey({date:t.date,type:t.type,amount:t.amount,acct:a,to:b,name:t.name});const c=have.get(k)||0;
+    if(c>0){have.set(k,c-1);t._dup=true;dup++}else{t._dup=false;neu++}});
+  BF.L=L;BF.dup=dup;BF.neu=neu;
+  const catN=new Set(L.filter(t=>t.cat).map(t=>t.folder+'›'+t.cat)).size,nT=L.filter(t=>t.type==='t').length;
+  const mk=BF.parent||'';
+  $('bf-pv').innerHTML=`<div class="dgrid" style="margin-top:8px"><label>Importa dal<input type="date" id="bf-from" value="${esc(from)}"></label>
+    <label>I conti nuovi diventano sottoconti di<select id="bf-par"><option value="">Nessuno (conti separati)</option>${S.accts.filter(a=>!a.parent).map(a=>`<option value="${a.id}"${mk===a.id?' selected':''}>${esc(a.name)}</option>`).join('')}</select></label></div>
+    <p class="foot" style="text-align:left;margin:8px 0 4px"><b>${L.length}</b> movimenti nel periodo (${nT} trasferimenti), dal ${fd(L[0]?L[0].date:BF.tx[0].date)} al ${fd(L.length?L[L.length-1].date:BF.tx[BF.tx.length-1].date)}. Da importare: <b>${neu}</b>${dup?'; già presenti (saltati): <b>'+dup+'</b>':''}. Categorie coinvolte: ${catN}.</p>
+    <small style="display:block;margin:8px 0 2px">Corrispondenza dei conti</small>
+    ${names.map((n,i)=>`<label class="fl" style="margin-bottom:6px"><small>${esc(n)} <span style="opacity:.6">(${L.filter(t=>t.acct===n||t.to===n).length})</span></small><select data-bfa="${esc(n)}">${accOpts(BF.map[n]).replace('<option value=""','<option hidden value=""')}<option value="__new"${BF.map[n]==='__new'?' selected':''}>＋ Crea nuovo conto</option></select></label>`).join('')}
+    <label class="chk" style="margin:10px 0"><input type="checkbox" id="bf-ps"${S.set.pause?' disabled checked':' checked'}> Sospendi la generazione di movimenti dai prospetti${S.set.pause?' (già sospesa)':' (consigliato: evita i doppioni)'}</label>
+    <button id="bf-go" class="pri"${neu?'':' disabled'}>Importa ${neu} movimenti</button> <button id="bf-no">Annulla</button>`;
+}
+$('bf-f').onchange=async e=>{
+  const f=e.target.files[0];if(!f)return;
+  try{const rows=parseCSV(await f.text());if(!rows.length||!('Source Account' in rows[0])||!('Amount' in rows[0])){alert('Il file non sembra un export di Budget Flow (mancano le colonne Amount e Source Account).');e.target.value='';return}
+    BF={tx:bfBuild(rows),map:{},from:'',parent:''};if(!BF.tx.length){alert('Nessun movimento valido nel file.');BF=null}bfView()}catch(x){alert('Impossibile leggere il file.')}
+};
+$('bf-pv').addEventListener('change',e=>{const T=e.target;if(!BF)return;
+  if(T.id==='bf-from'){BF.from=T.value;bfView()}else if(T.id==='bf-par'){BF.parent=T.value}else if(T.dataset.bfa!==undefined){BF.map[T.dataset.bfa]=T.value;bfView()}});
+$('bf-pv').addEventListener('click',e=>{
+  if(e.target.id==='bf-no'){BF=null;$('bf-f').value='';bfView();return}
+  if(e.target.id!=='bf-go'||!BF)return;
+  const log={id:uid(),accts:[],cats:[],n:0};
+  const A={};Object.keys(BF.map).forEach(n=>{let v=BF.map[n];if(v==='__new'){const a={id:uid(),name:n,type:n==='Conto corrente'?'cc':'risp',open:0,parent:BF.parent||''};S.accts.push(a);log.accts.push(a.id);v=a.id}A[n]=v});
+  const cmap={};
+  const catId=(fo,ca,kind)=>{const key=fo+'›'+ca;if(cmap[key]!==undefined)return cmap[key];
+    let pid='';if(fo){const k='›'+fo;if(cmap[k]===undefined){let c=S.cats.find(c=>!c.parent&&c.name.toLowerCase()===fo.toLowerCase());if(!c){c={id:uid(),name:fo,parent:'',icon:'',color:'#6b7bd6',kind};S.cats.push(c);log.cats.push(c.id)}cmap[k]=c.id}pid=cmap['›'+fo]}
+    let c=ca?S.cats.find(c=>(c.parent||'')===pid&&c.name.toLowerCase()===ca.toLowerCase()):null;
+    if(!c&&ca){c={id:uid(),name:ca,parent:pid,icon:'',color:'#6b7bd6'};S.cats.push(c);log.cats.push(c.id)}
+    return cmap[key]=c?c.id:pid};
+  const fk={};BF.L.forEach(t=>{if(t.folder&&t.type!=='t'){(fk[t.folder]=fk[t.folder]||{u:0,e:0})[t.type]++}});
+  BF.L.forEach(t=>{if(t._dup)return;
+    const kind=fk[t.folder]&&fk[t.folder].e>fk[t.folder].u?'e':'u';
+    const cat=t.type==='t'||(!t.cat&&!t.folder)?'':catId(t.folder,t.cat,kind);
+    S.tx.push({id:uid(),type:t.type,date:t.date,amount:t.amount,acct:A[t.acct],to:t.to?A[t.to]:'',cat,name:t.name,tags:[],note:t.note,imp:log.id});log.n++});
+  if($('bf-ps').checked&&!S.set.pause)S.set.pause=true;
+  S.set.imps=(S.set.imps||[]);S.set.imps.push(log);
+  const n=log.n;BF=null;$('bf-f').value='';render();
+  $('bf-pv').innerHTML=`<p class="foot" style="text-align:left">Importati ${n} movimenti${log.accts.length?', creati '+log.accts.length+' conti':''}${log.cats.length?' e '+log.cats.length+' categorie':''}. Budget Flow non esporta i saldi iniziali: in Conti usa la riconciliazione per allineare ogni saldo a quello reale.</p>`;
+});
+function bfUndoBtn(){const l=(S.set.imps||[])[(S.set.imps||[]).length-1],b=$('bf-un');if(!l){b.style.display='none';return}
+  const n=S.tx.filter(t=>t.imp===l.id).length;b.style.display='';b.textContent='Annulla l’ultimo import ('+n+' movimenti)'}
+$('bf-un').onclick=()=>{const l=(S.set.imps||[]).pop();if(!l)return;
+  if(!confirm('Eliminare i '+S.tx.filter(t=>t.imp===l.id).length+' movimenti dell’ultimo import? Conti e categorie creati vengono tolti se non usati da altri movimenti.')){S.set.imps.push(l);return}
+  S.tx=S.tx.filter(t=>t.imp!==l.id);
+  l.accts.forEach(id=>{if(!S.tx.some(t=>t.acct===id||t.to===id)&&!S.accts.some(a=>a.parent===id))S.accts=S.accts.filter(a=>a.id!==id)});
+  l.cats.slice().reverse().forEach(id=>{if(!S.tx.some(t=>t.cat===id||(t.split||[]).some(x=>x.cat===id))&&!S.cats.some(c=>c.parent===id))S.cats=S.cats.filter(c=>c.id!==id)});
+  render()};
 $('st-p').onchange=()=>{S.set.pause=$('st-p').checked;render()};
 $('st-f').addEventListener('change',()=>{S.set.from=$('st-f').value;renderSoft()});
 $('st-d').onclick=()=>{const g=S.tx.filter(t=>t.ref).length;if(!g){alert('Nessun movimento generato dai prospetti.');return}
