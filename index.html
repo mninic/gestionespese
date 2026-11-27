@@ -684,7 +684,7 @@ body::before{content:'';position:fixed;top:0;left:0;right:0;height:env(safe-area
 </div>
 
 <script>
-const APP_VER='2.15.0';
+const APP_VER='2.15.1';
 const KEY='prospetto-spese-v1';
 const uid=()=>Math.random().toString(36).slice(2,9);
 const pad=n=>String(n).padStart(2,'0');
@@ -1255,7 +1255,7 @@ function rX(){
   const emp='<p class="foot" style="padding:18px">Nessun movimento. Segna una voce come pagata oppure tocca ＋ per aggiungerne uno.</p>';
   const gk=SO.xg||'',LS=L.slice(0,XMAX);document.querySelectorAll('#x-gr button').forEach(b=>b.classList.toggle('on',b.dataset.v===gk));
   const fdl=d=>{const x=new Date(d+'T12:00:00').toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long',year:'numeric'});return x.charAt(0).toUpperCase()+x.slice(1)};
-  const grp=t=>{if(gk==='d')return[t.date,fdl(t.date),0];if(t.type==='t')return['~t','⇄ Trasferimenti',2];if(t.split)return['~s','✂ Più categorie',2];const c=t.cat;if(!c)return['','Senza categoria',1];if(gk==='c'){const r=catRootId(c),cc=catById(r);return[r,cc?(cc.icon?cc.icon+' ':'')+cc.name:'Senza categoria',0]}const cc=catById(c);return[c,(cc&&cc.icon?cc.icon+' ':'')+catPath(c),0]};
+  const grp=t=>{if(gk==='d')return[t.date,fdl(t.date),0];if(t.split)return['~s','✂ Più categorie',2];const c=t.cat;if(t.type==='t'&&!c)return['~t','⇄ Trasferimenti',2];if(!c)return['','Senza categoria',1];if(gk==='c'){const r=catRootId(c),cc=catById(r);return[r,cc?(cc.icon?cc.icon+' ':'')+cc.name:'Senza categoria',0]}const cc=catById(c);return[c,(cc&&cc.icon?cc.icon+' ':'')+catPath(c),0]};
   if(!gk||!LS.length)$('xl').innerHTML=LS.map(rowF).join('')||emp;
   else{const G=new Map();LS.forEach(t=>{const [k,l,o]=grp(t);let g=G.get(k);if(!g){g={l,o,n:0,net:0,h:''};G.set(k,g)}g.n++;if(!t.adj&&effSta(t)){const f=flowK(t);g.net+=f==='e'?t.amount:f==='u'?-t.amount:0}g.h+=rowF(t)});
     let A=[...G.values()];if(gk!=='d')A.sort((a,b)=>a.o-b.o||Math.abs(b.net)-Math.abs(a.net)||a.l.localeCompare(b.l,'it'));
