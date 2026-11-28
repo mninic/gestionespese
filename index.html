@@ -684,7 +684,7 @@ body::before{content:'';position:fixed;top:0;left:0;right:0;height:env(safe-area
 </div>
 
 <script>
-const APP_VER='2.15.1';
+const APP_VER='2.15.2';
 const KEY='prospetto-spese-v1';
 const uid=()=>Math.random().toString(36).slice(2,9);
 const pad=n=>String(n).padStart(2,'0');
@@ -763,6 +763,7 @@ const accIds=id=>[id,...S.accts.filter(x=>x.parent===id).map(x=>x.id)];
 const accOpts=(sel,blank)=>(blank?`<option value=""${sel?'':' selected'}>${blank}</option>`:'')+accTree().filter(({a})=>!a.arch||a.id===sel).map(({a})=>`<option value="${a.id}"${a.id===sel?' selected':''}>${esc(accName(a.id))}</option>`).join('');
 const fillSel=()=>[['a-s',S.main,''],['aa-s',S.main,''],['tp-c',S.main,''],['dd-c','','Nessun conto'],['x-a','','Tutti i conti'],['tx-a',S.main,''],['tx-b','','Scegli il conto']].forEach(([id,def,bl])=>{
   const e=$(id),v=e.value;e.innerHTML=accOpts(null,bl);e.value=(v&&[...e.options].some(o=>o.value===v))?v:def});
+const ensAcc=(id,v)=>{const e=$(id);if(v&&![...e.options].some(o=>o.value===v)&&S.accts.some(a=>a.id===v))e.insertAdjacentHTML('beforeend',`<option value="${v}">${esc(accName(v))} (archiviato)</option>`)};
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){};schedPush()};
 const $=id=>document.getElementById(id);
 const monthLabel=k=>{const[y,m]=k.split('-');const s=new Date(+y,m-1,1).toLocaleDateString('it-IT',{month:'long',year:'numeric'});return s[0].toUpperCase()+s.slice(1)};
@@ -1339,7 +1340,7 @@ function openTX(id,pre){
   $('tx-fv').innerHTML=(!t&&!pre&&S.fav.length)?S.fav.map(f=>`<button type="button" class="fvc" data-f="${f.id}">★ ${esc(f.name)}${f.amount?' · '+eur(f.amount):''}</button>`).join(''):'';
   $('tx-dup').style.display=t?'':'none';
   $('tx-t').textContent=t?'Movimento':'Nuovo movimento';
-  $('tx-pe').checked=!!d.pend;TGU=d.bud!==undefined||d.sta!==undefined||!!d.nob||!!d.nos;$('tx-bu').checked=effBud(d);$('tx-st').checked=effSta(d);tgHint();$('tx-m').value=d.amount;$('tx-d').value=d.date;$('tx-n').value=d.name;$('tx-a').value=d.acct;$('tx-b').value=d.to||'';$('tx-c').value=d.cat;$('tx-g').value=(d.tags||[]).join(', ');$('tx-o').value=d.note;
+  $('tx-pe').checked=!!d.pend;TGU=d.bud!==undefined||d.sta!==undefined||!!d.nob||!!d.nos;$('tx-bu').checked=effBud(d);$('tx-st').checked=effSta(d);tgHint();$('tx-m').value=d.amount;$('tx-d').value=d.date;$('tx-n').value=d.name;ensAcc('tx-a',d.acct);ensAcc('tx-b',d.to);$('tx-a').value=d.acct;$('tx-b').value=d.to||'';$('tx-c').value=d.cat;$('tx-g').value=(d.tags||[]).join(', ');$('tx-o').value=d.note;
   const lk=!!(t&&t.ref);
   ['tx-m','tx-d','tx-n','tx-a','tx-b'].forEach(i=>$(i).disabled=lk);document.querySelectorAll('#tx-ty button').forEach(b=>b.disabled=lk);
   $('tx-lk').textContent=lk?'Movimento generato da una voce (Mensile, Annuali, Entrate o Debiti e crediti): importo, data, nome e conto si cambiano dalla voce. Qui puoi impostare categoria, tag e note.':'';
